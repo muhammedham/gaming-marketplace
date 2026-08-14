@@ -13,9 +13,9 @@
 - [x] Postman collection skeleton oluşturuldu.
 - [x] Bağımsız GitHub repository oluşturuldu ve `origin/main` ile bağlandı.
 - [x] Wireframe PNG çıktısı `docs/wireframes` klasörüne eklendi.
+- [x] Düzenlenebilir Excalidraw kaynak dosyası `docs/wireframes` klasörüne eklendi.
 
 ## Kalan
 
 - [ ] Sprint 1-5 GitHub milestone ve issue'ları oluşturulacak.
 - [ ] Muhammed ve Zeyad için primary/reviewer sorumlulukları atanacak.
-- [ ] Düzenlenebilir wireframe kaynak dosyası `docs/wireframes` klasörüne eklenecek.
