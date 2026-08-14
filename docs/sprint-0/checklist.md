@@ -14,8 +14,9 @@
 - [x] Bağımsız GitHub repository oluşturuldu ve `origin/main` ile bağlandı.
 - [x] Wireframe PNG çıktısı `docs/wireframes` klasörüne eklendi.
 - [x] Düzenlenebilir Excalidraw kaynak dosyası `docs/wireframes` klasörüne eklendi.
+- [x] Sprint 1-5 GitHub milestone ve issue'ları oluşturuldu.
+- [x] Muhammed ve Zeyad için primary/reviewer sorumlulukları atandı.
 
 ## Kalan
 
-- [ ] Sprint 1-5 GitHub milestone ve issue'ları oluşturulacak.
-- [ ] Muhammed ve Zeyad için primary/reviewer sorumlulukları atanacak.
+Sprint 0 için açık madde yoktur.
