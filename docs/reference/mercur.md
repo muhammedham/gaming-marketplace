@@ -29,4 +29,3 @@ bunx turbo run dev --filter=@acme/api --filter=@acme/admin --filter=@acme/vendor
 
 Bu onay akışı doğrudan MVP gereksinimi değildir. Bizim ilk sürümümüzde Admin,
 aktif ilanı sonradan pasifleştirebilir.
-
