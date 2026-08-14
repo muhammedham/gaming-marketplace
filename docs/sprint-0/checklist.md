@@ -11,10 +11,11 @@
 - [x] Bağımsız uygulama mimarisi ve klasör yapısı kararlaştırıldı.
 - [x] README başlangıç dokümanı oluşturuldu.
 - [x] Postman collection skeleton oluşturuldu.
+- [x] Bağımsız GitHub repository oluşturuldu ve `origin/main` ile bağlandı.
+- [x] Wireframe PNG çıktısı `docs/wireframes` klasörüne eklendi.
 
 ## Kalan
 
 - [ ] Sprint 1-5 GitHub milestone ve issue'ları oluşturulacak.
 - [ ] Muhammed ve Zeyad için primary/reviewer sorumlulukları atanacak.
-- [ ] Wireframe kaynak ve çıktıları `docs/wireframes` klasörüne eklenecek.
-
+- [ ] Düzenlenebilir wireframe kaynak dosyası `docs/wireframes` klasörüne eklenecek.
