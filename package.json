@@ -8,9 +8,13 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
+    "dev:web": "npm run dev --workspace @gaming-marketplace/web",
     "build": "npm run build --workspaces --if-present",
+    "build:web": "npm run build --workspace @gaming-marketplace/web",
     "lint": "npm run lint --workspaces --if-present",
+    "lint:web": "npm run lint --workspace @gaming-marketplace/web",
     "test": "npm run test --workspaces --if-present",
+    "test:web": "npm run test --workspace @gaming-marketplace/web",
     "db:up": "docker compose up -d postgres redis",
     "db:down": "docker compose down"
   },
@@ -18,4 +22,3 @@
     "node": ">=20"
   }
 }
-

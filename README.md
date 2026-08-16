@@ -96,7 +96,20 @@ Copy-Item .env.example .env
 npm run db:up
 ```
 
-React ve Fastify kurulum komutları Sprint 1 sırasında eklenecektir.
+Bağımlılıkları kurup web uygulamasını başlatmak için:
+
+```powershell
+npm install
+npm run dev:web
+```
+
+Web kalite kontrolleri:
+
+```powershell
+npm run lint:web
+npm run test:web
+npm run build:web
+```
 
 ## API Modülleri
 
@@ -107,7 +120,8 @@ React ve Fastify kurulum komutları Sprint 1 sırasında eklenecektir.
 - Support
 - Admin
 
-Başlangıç API sözleşmesi `docs/postman` altında bulunmaktadır.
+Başlangıç Postman örnekleri `docs/postman`, Sprint 1 Auth response ve cookie
+sözleşmesi `docs/api/auth-contract.md` altında bulunmaktadır.
 
 ## Mercur Referans Ortamı
 
@@ -118,4 +132,3 @@ Başlangıç API sözleşmesi `docs/postman` altında bulunmaktadır.
 
 Mercur kurulum dosyaları `Hazırlık/Template/mercur` altında ayrı tutulur ve bu
 repository'ye kopyalanmaz.
-
