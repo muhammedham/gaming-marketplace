@@ -1,62 +1,87 @@
 {
   "info": {
     "name": "Gaming Marketplace API",
-    "description": "Sprint 0 API contract skeleton. Endpoints will be implemented incrementally during Sprint 1-5.",
+    "description": "Sprint 1 Auth endpoints are implemented. Listings, Wallet, Orders and Support requests are contracts for upcoming sprints. Login cookies are stored automatically by Postman's cookie jar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
-    "type": "bearer",
-    "bearer": [
-      {
-        "key": "token",
-        "value": "{{accessToken}}",
-        "type": "string"
-      }
-    ]
+    "type": "noauth"
   },
   "item": [
     {
-      "name": "Auth",
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{healthUrl}}",
+        "description": "Implemented. Checks API, PostgreSQL and Redis availability."
+      }
+    },
+    {
+      "name": "Auth - Sprint 1 Implemented",
       "item": [
         {
-          "name": "Register",
+          "name": "Register Buyer",
           "request": {
-            "auth": { "type": "noauth" },
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"buyer-demo\",\n  \"email\": \"buyer@example.com\",\n  \"password\": \"ChangeMe123!\",\n  \"role\": \"buyer\"\n}"
+              "raw": "{\n  \"name\": \"New Buyer\",\n  \"email\": \"new-buyer@example.com\",\n  \"password\": \"ChangeMe123!\",\n  \"role\": \"BUYER\"\n}"
             },
-            "url": "{{baseUrl}}/auth/register"
+            "url": "{{baseUrl}}/auth/register",
+            "description": "Creates User and zero-balance Wallet in one transaction, then sets gm_session cookie. Change the email before repeating."
           }
         },
         {
-          "name": "Login",
+          "name": "Login Demo Buyer",
           "request": {
-            "auth": { "type": "noauth" },
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"buyer@example.com\",\n  \"password\": \"ChangeMe123!\"\n}"
+              "raw": "{\n  \"email\": \"{{demoBuyerEmail}}\",\n  \"password\": \"{{demoBuyerPassword}}\"\n}"
             },
-            "url": "{{baseUrl}}/auth/login"
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Sets the HttpOnly gm_session cookie used by following requests."
+          }
+        },
+        {
+          "name": "Login Demo Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{demoAdminEmail}}\",\n  \"password\": \"{{demoAdminPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Use before Admin Session to replace the current cookie with an Admin session."
           }
         },
         {
           "name": "Current User",
-          "request": { "method": "GET", "url": "{{baseUrl}}/auth/me" }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me",
+            "description": "Returns the authenticated user and Wallet balances from the session cookie."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/logout",
+            "description": "Clears gm_session and returns 204."
+          }
         }
       ]
     },
     {
-      "name": "Listings",
+      "name": "Listings - Future Sprint",
       "item": [
         {
           "name": "List Listings",
           "request": {
-            "auth": { "type": "noauth" },
             "method": "GET",
             "url": "{{baseUrl}}/listings?page=1&limit=20"
           }
@@ -64,7 +89,6 @@
         {
           "name": "Get Listing",
           "request": {
-            "auth": { "type": "noauth" },
             "method": "GET",
             "url": "{{baseUrl}}/listings/{{listingId}}"
           }
@@ -84,11 +108,14 @@
       ]
     },
     {
-      "name": "Wallet",
+      "name": "Wallet - Future Sprint",
       "item": [
         {
           "name": "Wallet Summary",
-          "request": { "method": "GET", "url": "{{baseUrl}}/wallet" }
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/wallet"
+          }
         },
         {
           "name": "Simulate Deposit",
@@ -111,7 +138,7 @@
       ]
     },
     {
-      "name": "Orders",
+      "name": "Orders - Future Sprint",
       "item": [
         {
           "name": "Create Order",
@@ -124,16 +151,22 @@
         },
         {
           "name": "Deliver Order",
-          "request": { "method": "POST", "url": "{{baseUrl}}/orders/{{orderId}}/deliver" }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/orders/{{orderId}}/deliver"
+          }
         },
         {
           "name": "Confirm Order",
-          "request": { "method": "POST", "url": "{{baseUrl}}/orders/{{orderId}}/confirm" }
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/orders/{{orderId}}/confirm"
+          }
         }
       ]
     },
     {
-      "name": "Support",
+      "name": "Support - Future Sprint",
       "item": [
         {
           "name": "Create Ticket",
@@ -153,11 +186,21 @@
       "name": "Admin",
       "item": [
         {
-          "name": "List Users",
-          "request": { "method": "GET", "url": "{{baseUrl}}/admin/users?page=1&limit=20" }
+          "name": "Admin Session - Sprint 1 Implemented",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/session",
+            "description": "Sprint 1 role-boundary proof. Login as Admin first. Buyer and Seller receive 403."
+          }
+        },
+        {
+          "name": "List Users - Future Sprint",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/users?page=1&limit=20"
+          }
         }
       ]
     }
   ]
 }
-

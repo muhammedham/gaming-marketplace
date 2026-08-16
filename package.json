@@ -7,18 +7,33 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
+    "dev": "concurrently --kill-others --names WEB,API --prefix-colors green,blue \"npm:dev:web\" \"npm:dev:api\"",
     "dev:web": "npm run dev --workspace @gaming-marketplace/web",
+    "dev:api": "npm run dev --workspace @gaming-marketplace/api",
     "build": "npm run build --workspaces --if-present",
     "build:web": "npm run build --workspace @gaming-marketplace/web",
     "lint": "npm run lint --workspaces --if-present",
     "lint:web": "npm run lint --workspace @gaming-marketplace/web",
     "test": "npm run test --workspaces --if-present",
     "test:web": "npm run test --workspace @gaming-marketplace/web",
+    "test:api": "npm run test --workspace @gaming-marketplace/api",
     "db:up": "docker compose up -d postgres redis",
-    "db:down": "docker compose down"
+    "db:down": "docker compose down",
+    "db:generate": "npm run db:generate --workspace @gaming-marketplace/api",
+    "db:migrate": "npm run db:migrate --workspace @gaming-marketplace/api",
+    "db:deploy": "npm run db:deploy --workspace @gaming-marketplace/api",
+    "db:seed": "npm run db:seed --workspace @gaming-marketplace/api"
   },
   "engines": {
     "node": ">=20"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "esbuild@0.28.2": true,
+    "prisma@6.19.3": true
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
   }
 }

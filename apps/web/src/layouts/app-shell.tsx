@@ -26,7 +26,7 @@ export function AppShell() {
     onSettled: () => {
       setUnauthenticated();
       queryClient.removeQueries({ queryKey: ["auth"] });
-      navigate("/");
+      navigate("/login");
     },
   });
 

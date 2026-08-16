@@ -4,7 +4,7 @@ This contract is shared by the React client and the Fastify API for Sprint 1.
 
 ## Base URL
 
-`http://localhost:4000/api/v1`
+`http://127.0.0.1:4000/api/v1`
 
 The web client reads the value from `VITE_API_URL` and sends cookies with every request.
 
