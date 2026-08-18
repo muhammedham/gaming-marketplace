@@ -5,11 +5,14 @@ import type {
   ListingDetail,
   ListingFilters,
   ListingInput,
+  ListingMediaInput,
   ListingPage,
+  ListingMedia,
   UpdateListingCommand,
 } from "./types";
 
 const STORAGE_KEY = "gaming-marketplace.mock-listings.v1";
+const runtimeObjectUrls = new Set<string>();
 
 const wait = (milliseconds = 180) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -17,10 +20,22 @@ function readStoredListings() {
   if (typeof window === "undefined") return [] as ListingDetail[];
 
   try {
-    return JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]") as ListingDetail[];
+    const listings = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]") as ListingDetail[];
+    return listings.map((listing) => ({
+      ...listing,
+      cover: staleObjectUrl(listing.cover.url)
+        ? { ...listing.cover, url: listingCoverByCategory[listing.category.slug] }
+        : listing.cover,
+      gallery: listing.gallery.filter((media) => !staleObjectUrl(media.url)),
+      video: listing.video && staleObjectUrl(listing.video.url) ? null : listing.video,
+    }));
   } catch {
     return [] as ListingDetail[];
   }
+}
+
+function staleObjectUrl(url: string) {
+  return url.startsWith("blob:") && !runtimeObjectUrls.has(url);
 }
 
 function writeStoredListings(listings: ListingDetail[]) {
@@ -54,7 +69,19 @@ function assertOwner(listing: ListingDetail, actor: ListingActor) {
   }
 }
 
-function listingFromInput(input: ListingInput, actor: ListingActor, existing?: ListingDetail): ListingDetail {
+function mediaFromFile(file: File, role: ListingMedia["role"], id: string, alt: string): ListingMedia | null {
+  if (typeof URL === "undefined" || typeof URL.createObjectURL !== "function") return null;
+  const url = URL.createObjectURL(file);
+  runtimeObjectUrls.add(url);
+  return { id, role, url, alt, mimeType: file.type };
+}
+
+function listingFromInput(
+  input: ListingInput,
+  media: ListingMediaInput,
+  actor: ListingActor,
+  existing?: ListingDetail,
+): ListingDetail {
   const category = mockCategories.find((item) => item.id === input.categoryId);
   const game = input.gameId ? mockGames.find((item) => item.id === input.gameId) ?? null : null;
 
@@ -63,24 +90,34 @@ function listingFromInput(input: ListingInput, actor: ListingActor, existing?: L
   const now = new Date().toISOString();
   const id = existing?.id ?? createId();
   const coverUrl = existing?.cover.url ?? listingCoverByCategory[category.slug];
+  const title = input.title.trim();
+  const uploadedCover = media.cover
+    ? mediaFromFile(media.cover, "COVER", `media-${id}-cover-${Date.now()}`, `${title} cover`)
+    : null;
+  const uploadedGallery = media.gallery
+    .map((file, index) => mediaFromFile(file, "GALLERY", `media-${id}-gallery-${Date.now()}-${index}`, `${title} gallery image ${index + 1}`))
+    .filter((item): item is ListingMedia => Boolean(item));
+  const uploadedVideo = media.video
+    ? mediaFromFile(media.video, "VIDEO", `media-${id}-video-${Date.now()}`, `${title} product video`)
+    : null;
 
   return {
     id,
-    title: input.title.trim(),
+    title,
     excerpt: input.description.trim().slice(0, 110),
     description: input.description.trim(),
     price: Number(input.price).toFixed(2),
     status: "ACTIVE",
     category,
     game,
-    cover: existing?.cover ?? {
+    cover: uploadedCover ?? existing?.cover ?? {
       id: `media-${id}-cover`,
       role: "COVER",
       url: coverUrl,
-      alt: `${input.title.trim()} cover`,
+      alt: `${title} cover`,
     },
-    gallery: existing?.gallery ?? [],
-    video: existing?.video ?? null,
+    gallery: uploadedGallery.length ? uploadedGallery : existing?.gallery ?? [],
+    video: uploadedVideo ?? existing?.video ?? null,
     seller: existing?.seller ?? { id: actor.id, name: actor.name, joinedAt: now },
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
@@ -142,7 +179,7 @@ export async function mockListMyListings(actor: ListingActor) {
 
 export async function mockCreateListing(command: CreateListingCommand) {
   await wait(320);
-  const listing = listingFromInput(command.input, command.actor);
+  const listing = listingFromInput(command.input, command.media, command.actor);
   writeStoredListings([listing, ...readStoredListings()]);
   return listing;
 }
@@ -153,7 +190,7 @@ export async function mockUpdateListing(command: UpdateListingCommand) {
   if (!current) throw new Error("Listing not found.");
   assertOwner(current, command.actor);
 
-  const updated = listingFromInput(command.input, command.actor, current);
+  const updated = listingFromInput(command.input, command.media, command.actor, current);
   const stored = readStoredListings().filter((listing) => listing.id !== command.listingId);
   writeStoredListings([updated, ...stored]);
   return updated;
