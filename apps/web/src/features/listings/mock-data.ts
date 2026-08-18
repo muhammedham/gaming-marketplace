@@ -1,0 +1,168 @@
+import armorImage from "../../assets/listings/crimson-armor.webp";
+import coinsImage from "../../assets/listings/gold-coins.webp";
+import rifleImage from "../../assets/listings/neon-rifle.webp";
+import accountImage from "../../assets/listings/platinum-account.webp";
+
+import type { Category, Game, ListingDetail } from "./types";
+
+export const mockCategories: Category[] = [
+  { id: "cat-accounts", name: "Accounts", slug: "accounts", description: "Progressed accounts ready for a new owner." },
+  { id: "cat-currency", name: "Game Currency", slug: "game-currency", description: "In-game coins and credit bundles." },
+  { id: "cat-items", name: "Items", slug: "items", description: "Rare equipment and inventory items." },
+  { id: "cat-skins", name: "Skins", slug: "skins", description: "Cosmetic weapon and character collections." },
+  { id: "cat-gift-cards", name: "Gift Cards", slug: "gift-cards", description: "Digital balance and store cards." },
+  { id: "cat-boosting", name: "Boosting", slug: "boosting", description: "Clearly scoped progression services." },
+];
+
+export const mockGames: Game[] = [
+  { id: "game-arena", name: "Arena Protocol", slug: "arena-protocol" },
+  { id: "game-elder", name: "Elder Realms", slug: "elder-realms" },
+  { id: "game-strike", name: "Strike Division", slug: "strike-division" },
+  { id: "game-rift", name: "Rift Legends", slug: "rift-legends" },
+];
+
+const category = (slug: string) => mockCategories.find((item) => item.slug === slug)!;
+const game = (slug: string) => mockGames.find((item) => item.slug === slug)!;
+
+const demoSeller = { id: "demo-seller", name: "Demo Seller", joinedAt: "2026-08-01T10:00:00.000Z" };
+const novaSeller = { id: "nova-seller", name: "Nova Market", joinedAt: "2026-07-14T10:00:00.000Z" };
+
+export const mockListings: ListingDetail[] = [
+  {
+    id: "listing-neon-rifle",
+    title: "Neon Pulse Rifle Skin",
+    excerpt: "Clean inventory transfer with the complete neon finish.",
+    description: "A premium sci-fi rifle cosmetic with cyan energy detailing. The listing includes the exact skin shown in the cover and a guided inventory transfer from the Seller.",
+    price: "840.00",
+    status: "ACTIVE",
+    category: category("skins"),
+    game: game("arena-protocol"),
+    cover: { id: "media-rifle-cover", role: "COVER", url: rifleImage, alt: "Neon Pulse rifle skin" },
+    gallery: [],
+    video: null,
+    seller: demoSeller,
+    createdAt: "2026-08-18T09:30:00.000Z",
+    updatedAt: "2026-08-18T09:30:00.000Z",
+  },
+  {
+    id: "listing-gold-coins",
+    title: "20,000 Gold Coin Bundle",
+    excerpt: "Fast delivery for a large Elder Realms currency bundle.",
+    description: "Twenty thousand game coins delivered through the agreed in-game transfer flow. Delivery details are confirmed with the Buyer after checkout.",
+    price: "560.00",
+    status: "ACTIVE",
+    category: category("game-currency"),
+    game: game("elder-realms"),
+    cover: { id: "media-coins-cover", role: "COVER", url: coinsImage, alt: "Gold game currency bundle" },
+    gallery: [],
+    video: null,
+    seller: novaSeller,
+    createdAt: "2026-08-18T08:10:00.000Z",
+    updatedAt: "2026-08-18T08:10:00.000Z",
+  },
+  {
+    id: "listing-crimson-armor",
+    title: "Crimson Warden Armor Set",
+    excerpt: "Helmet, shoulders and cape sold as one cosmetic set.",
+    description: "A complete crimson and silver armor cosmetic set. All pieces shown are included and will be transferred together as one listing.",
+    price: "1120.00",
+    status: "ACTIVE",
+    category: category("items"),
+    game: game("elder-realms"),
+    cover: { id: "media-armor-cover", role: "COVER", url: armorImage, alt: "Crimson Warden armor set" },
+    gallery: [],
+    video: null,
+    seller: demoSeller,
+    createdAt: "2026-08-17T18:45:00.000Z",
+    updatedAt: "2026-08-17T18:45:00.000Z",
+  },
+  {
+    id: "listing-platinum-account",
+    title: "Platinum Ranked Account",
+    excerpt: "Competitive account with a clean profile and progression history.",
+    description: "A progressed competitive account at Platinum rank. The Seller provides transfer instructions and the exact account details after purchase.",
+    price: "1450.00",
+    status: "ACTIVE",
+    category: category("accounts"),
+    game: game("strike-division"),
+    cover: { id: "media-account-cover", role: "COVER", url: accountImage, alt: "Platinum ranked gaming account" },
+    gallery: [],
+    video: null,
+    seller: novaSeller,
+    createdAt: "2026-08-17T16:15:00.000Z",
+    updatedAt: "2026-08-17T16:15:00.000Z",
+  },
+  {
+    id: "listing-crystal-pack",
+    title: "5,000 Crystal Credit Pack",
+    excerpt: "A smaller currency pack for seasonal store items.",
+    description: "Five thousand Crystal Credits delivered in one transfer. Suitable for seasonal cosmetics and store bundles.",
+    price: "190.00",
+    status: "ACTIVE",
+    category: category("game-currency"),
+    game: game("rift-legends"),
+    cover: { id: "media-crystal-cover", role: "COVER", url: coinsImage, alt: "Crystal currency pack" },
+    gallery: [],
+    video: null,
+    seller: demoSeller,
+    createdAt: "2026-08-16T14:00:00.000Z",
+    updatedAt: "2026-08-16T14:00:00.000Z",
+  },
+  {
+    id: "listing-rank-boost",
+    title: "Weekend Rank Boost",
+    excerpt: "A clearly scoped two-division progression service.",
+    description: "A scheduled progression service covering up to two competitive divisions. Timing and account access are confirmed before work begins.",
+    price: "620.00",
+    status: "ACTIVE",
+    category: category("boosting"),
+    game: game("strike-division"),
+    cover: { id: "media-boost-cover", role: "COVER", url: accountImage, alt: "Competitive rank progression service" },
+    gallery: [],
+    video: null,
+    seller: novaSeller,
+    createdAt: "2026-08-15T12:20:00.000Z",
+    updatedAt: "2026-08-15T12:20:00.000Z",
+  },
+  {
+    id: "listing-gift-card",
+    title: "500 Coin Store Card",
+    excerpt: "Digital marketplace balance card delivered as a code.",
+    description: "A single-use digital store card worth 500 Coins. The code is delivered through the order flow after purchase.",
+    price: "500.00",
+    status: "ACTIVE",
+    category: category("gift-cards"),
+    game: null,
+    cover: { id: "media-card-cover", role: "COVER", url: rifleImage, alt: "Digital gaming store card" },
+    gallery: [],
+    video: null,
+    seller: demoSeller,
+    createdAt: "2026-08-14T10:00:00.000Z",
+    updatedAt: "2026-08-14T10:00:00.000Z",
+  },
+  {
+    id: "listing-shadow-armor",
+    title: "Shadow Guard Cosmetic Pack",
+    excerpt: "A dark armor cosmetic pack with four matching pieces.",
+    description: "Four coordinated cosmetic armor pieces sold together. The exact inventory contents are confirmed before checkout.",
+    price: "760.00",
+    status: "ACTIVE",
+    category: category("skins"),
+    game: game("rift-legends"),
+    cover: { id: "media-shadow-cover", role: "COVER", url: armorImage, alt: "Shadow Guard cosmetic armor" },
+    gallery: [],
+    video: null,
+    seller: novaSeller,
+    createdAt: "2026-08-13T11:30:00.000Z",
+    updatedAt: "2026-08-13T11:30:00.000Z",
+  },
+];
+
+export const listingCoverByCategory: Record<string, string> = {
+  accounts: accountImage,
+  "game-currency": coinsImage,
+  items: armorImage,
+  skins: rifleImage,
+  "gift-cards": coinsImage,
+  boosting: accountImage,
+};

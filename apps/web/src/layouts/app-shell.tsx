@@ -1,4 +1,4 @@
-import { Gamepad2, LogOut, UserRound, WalletCards } from "lucide-react";
+import { Gamepad2, LayoutGrid, LogOut, Store, UserRound, WalletCards } from "lucide-react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -9,7 +9,7 @@ import { useAuthStore } from "../store/auth-store";
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   cn(
-    "flex h-10 items-center border-b-2 px-1 text-sm font-medium transition-colors",
+    "flex h-10 items-center gap-1.5 border-b-2 px-1 text-sm font-medium transition-colors",
     isActive
       ? "border-emerald-600 text-gray-950"
       : "border-transparent text-gray-500 hover:text-gray-950",
@@ -33,7 +33,7 @@ export function AppShell() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-950">
       <header className="border-b border-gray-200 bg-white">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-6 sm:px-6 lg:px-8">
           <Link className="flex min-w-0 items-center gap-2 font-bold" to="/">
             <span className="grid size-9 shrink-0 place-items-center rounded-md bg-gray-950 text-white">
               <Gamepad2 className="size-5" aria-hidden="true" />
@@ -41,10 +41,21 @@ export function AppShell() {
             <span className="hidden truncate sm:inline">Gaming Marketplace</span>
           </Link>
 
-          <nav className="flex h-full items-center" aria-label="Main navigation">
+          <nav className="flex h-full items-center gap-3 sm:gap-5" aria-label="Main navigation">
             <NavLink className={navLinkClass} to="/" end>
-              Marketplace
+              <Gamepad2 className="size-4 sm:hidden" aria-hidden="true" />
+              <span className="hidden sm:inline">Marketplace</span>
             </NavLink>
+            <NavLink className={navLinkClass} to="/listings">
+              <LayoutGrid className="size-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Browse</span>
+            </NavLink>
+            {session?.user.role === "SELLER" ? (
+              <NavLink className={navLinkClass} to="/sell/listings">
+                <Store className="size-4" aria-hidden="true" />
+                <span className="hidden md:inline">Sell</span>
+              </NavLink>
+            ) : null}
           </nav>
 
           <div className="ml-auto flex min-w-0 items-center gap-2">
@@ -72,11 +83,11 @@ export function AppShell() {
               </>
             ) : (
               <>
-                <Button asChild variant="ghost" className="hidden sm:inline-flex">
+                <Button asChild variant="ghost" className="hidden md:inline-flex">
                   <Link to="/login">Sign in</Link>
                 </Button>
-                <Button asChild>
-                  <Link to="/register">Create account</Link>
+                <Button asChild className="px-3 sm:px-4">
+                  <Link to="/register"><span className="sm:hidden">Join</span><span className="hidden sm:inline">Create account</span></Link>
                 </Button>
               </>
             )}

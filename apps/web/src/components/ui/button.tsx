@@ -12,9 +12,11 @@ const buttonVariants = cva(
         primary: "bg-gray-950 text-white hover:bg-gray-800",
         secondary: "border border-gray-300 bg-white text-gray-900 hover:bg-gray-100",
         ghost: "text-gray-700 hover:bg-gray-100 hover:text-gray-950",
+        danger: "bg-red-700 text-white hover:bg-red-800",
       },
       size: {
         default: "h-10 px-4",
+        sm: "h-9 px-3",
         icon: "size-10 p-0",
       },
     },
