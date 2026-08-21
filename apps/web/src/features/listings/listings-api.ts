@@ -50,6 +50,19 @@ async function uploadCommandMedia(listingId: string, command: CreateListingComma
   if (command.media.video) await uploadMedia(listingId, "VIDEO", command.media.video);
 }
 
+function createListingBody(command: CreateListingCommand) {
+  const body = new FormData();
+  body.set("categoryId", command.input.categoryId);
+  body.set("gameId", command.input.gameId ?? "");
+  body.set("title", command.input.title);
+  body.set("description", command.input.description);
+  body.set("price", command.input.price);
+  if (command.media.cover) body.set("cover", command.media.cover);
+  for (const file of command.media.gallery) body.append("gallery", file);
+  if (command.media.video) body.set("video", command.media.video);
+  return body;
+}
+
 export function listCategories() {
   return useMockSource
     ? mockListCategories()
@@ -83,12 +96,10 @@ export function listMyListings(command: { actor: CreateListingCommand["actor"] }
 export async function createListing(command: CreateListingCommand) {
   if (useMockSource) return mockCreateListing(command);
 
-  const created = await apiRequest<ListingDetail>("/listings", {
+  return apiRequest<ListingDetail>("/listings", {
     method: "POST",
-    body: JSON.stringify(command.input),
+    body: createListingBody(command),
   });
-  await uploadCommandMedia(created.id, command);
-  return getListing(created.id);
 }
 
 export async function updateListing(command: UpdateListingCommand) {

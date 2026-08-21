@@ -53,6 +53,10 @@ npm run dev
 başlatır. Ayrı ayrı çalıştırmak için `npm run dev:web` ve `npm run dev:api`
 komutları kullanılabilir.
 
+Yeni `.env.example`, ilan ekranlarını gerçek Fastify API'sine bağlayan
+`VITE_LISTINGS_SOURCE=api` ayarıyla gelir. Daha önce oluşturulmuş bir `.env`
+dosyasında bu değer `mock` ise Sprint 2 entegrasyonu için `api` olarak değiştirin.
+
 ## Yerel Adresler
 
 - Web: `http://127.0.0.1:5173`
@@ -88,6 +92,36 @@ kaydını oluşturur. Seed tekrar çalıştırılabilir.
 Ayrıntılı response ve hata sözleşmesi [Auth API Contract](docs/api/auth-contract.md)
 dosyasındadır.
 
+## Sprint 2 Kategori, Oyun ve İlan Akışı
+
+- Seed; Accounts, Game Currency, Items, Skins, Gift Cards ve Boosting
+  kategorilerini, ayrıca dört demo oyunu tekrar çalıştırılabilir biçimde oluşturur.
+- Public katalog yalnız `ACTIVE` ve Cover'ı olan ilanları döndürür. Arama;
+  title/description, category, game, min-max price, sorting ve pagination'ı
+  birlikte destekler.
+- Seller, ilanını Cover ile tek multipart isteğinde oluşturur; kendi ilanlarını
+  düzenleyebilir, pasifleştirebilir ve Gallery/Video ekleyebilir.
+- Başka bir Seller update, deactivate veya media upload yaptığında `403
+  FORBIDDEN` alır. Pasif ilan yalnız sahibinin oturumunda detaylandırılabilir.
+- Upload dosya adı UUID ile yeniden üretilir. MIME, uzantı, dosya imzası, boyut,
+  adet ve sahiplik backend tarafında doğrulanır; dosyalar yalnız `/uploads/`
+  public path'inden sunulur.
+
+| Endpoint | Erişim | Açıklama |
+| --- | --- | --- |
+| `GET /api/v1/categories` | Public | Kategori listesi |
+| `GET /api/v1/games` | Public | Oyun listesi |
+| `GET /api/v1/listings` | Public | Arama, filtre, sıralama ve pagination |
+| `GET /api/v1/listings/:listingId` | Public/Owner | Aktif detay veya sahibine pasif detay |
+| `GET /api/v1/listings/mine` | Seller | Aktif ve pasif kendi ilanları |
+| `POST /api/v1/listings` | Seller | Cover zorunlu atomik multipart create |
+| `PATCH /api/v1/listings/:listingId` | Owner Seller | İlan bilgilerini güncelleme |
+| `POST /api/v1/listings/:listingId/deactivate` | Owner Seller | Pasifleştirme |
+| `POST /api/v1/listings/:listingId/media` | Owner Seller | Cover/Gallery/Video upload |
+
+Ayrıntılı request, response, filtre ve upload sözleşmesi [Listings API
+Contract](docs/api/listings-contract.md) dosyasındadır.
+
 ## Veritabanı Komutları
 
 ```powershell
@@ -109,7 +143,8 @@ npm run build
 
 Postman collection ve local environment dosyaları `docs/postman` altındadır.
 Postman, Login response'undaki cookie'yi kendi cookie jar'ında saklar; Bearer token
-girmek gerekmez.
+girmek gerekmez. Seller işlemleri için önce `Login Demo Seller`, sonra Categories
+ve Games isteklerini çalıştırıp Create Listing içindeki Cover dosyasını seçin.
 
 ## MVP Kapsamı
 

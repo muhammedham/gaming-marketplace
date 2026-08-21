@@ -20,6 +20,8 @@ const envSchema = z.object({
   DEMO_BUYER_PASSWORD: z.string().min(8).default("Buyer123!"),
   DEMO_SELLER_EMAIL: z.email().default("seller@gaming.local"),
   DEMO_SELLER_PASSWORD: z.string().min(8).default("Seller123!"),
+  UPLOAD_DIR: z.string().min(1).default("./uploads"),
+  MEDIA_PUBLIC_URL: z.url().default("http://127.0.0.1:4000/uploads"),
 });
 
 const result = envSchema.safeParse(process.env);

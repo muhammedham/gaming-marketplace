@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Gaming Marketplace API",
-    "description": "Sprint 1 Auth endpoints are implemented. Listings, Wallet, Orders and Support requests are contracts for upcoming sprints. Login cookies are stored automatically by Postman's cookie jar.",
+    "description": "Sprint 1 Auth and Sprint 2 Catalog/Listings endpoints are implemented. Wallet, Orders and Support remain future-sprint contracts. Login cookies are stored automatically by Postman's cookie jar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -46,6 +46,19 @@
           }
         },
         {
+          "name": "Login Demo Seller",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{demoSellerEmail}}\",\n  \"password\": \"{{demoSellerPassword}}\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Use before Seller listing create, edit, deactivate and media requests."
+          }
+        },
+        {
           "name": "Login Demo Admin",
           "request": {
             "method": "POST",
@@ -77,13 +90,50 @@
       ]
     },
     {
-      "name": "Listings - Future Sprint",
+      "name": "Catalog and Listings - Sprint 2 Implemented",
       "item": [
+        {
+          "name": "List Categories",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/categories",
+            "description": "Stores the first returned Category UUID in categoryId for later requests."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const items = pm.response.json().data.items;",
+                "if (items.length) pm.environment.set('categoryId', items[0].id);"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "List Games",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/games",
+            "description": "Stores the first returned Game UUID in gameId for later requests."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "const items = pm.response.json().data.items;",
+                "if (items.length) pm.environment.set('gameId', items[0].id);"
+              ]
+            }
+          }]
+        },
         {
           "name": "List Listings",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/listings?page=1&limit=20"
+            "url": "{{baseUrl}}/listings?sort=newest&page=1&limit=12",
+            "description": "Public ACTIVE listings. Add q, category, game, minPrice and maxPrice when testing combined filters."
           }
         },
         {
@@ -94,15 +144,75 @@
           }
         },
         {
+          "name": "My Listings",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/listings/mine",
+            "description": "Requires the Demo Seller session and returns ACTIVE plus INACTIVE owned listings."
+          }
+        },
+        {
           "name": "Create Listing",
           "request": {
             "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "categoryId", "value": "{{categoryId}}", "type": "text" },
+                { "key": "gameId", "value": "{{gameId}}", "type": "text" },
+                { "key": "title", "value": "Example listing", "type": "text" },
+                { "key": "description", "value": "A complete marketplace listing description.", "type": "text" },
+                { "key": "price", "value": "100.00", "type": "text" },
+                { "key": "cover", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{baseUrl}}/listings",
+            "description": "Login as Demo Seller, run Categories/Games, and choose a JPEG/PNG/WebP Cover file before sending."
+          },
+          "event": [{
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "if (pm.response.code === 201) {",
+                "  pm.environment.set('listingId', pm.response.json().data.id);",
+                "}"
+              ]
+            }
+          }]
+        },
+        {
+          "name": "Update Listing",
+          "request": {
+            "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"categoryId\": \"category-id\",\n  \"gameId\": null,\n  \"title\": \"Example listing\",\n  \"description\": \"Example description\",\n  \"price\": \"100.00\"\n}"
+              "raw": "{\n  \"categoryId\": \"{{categoryId}}\",\n  \"gameId\": \"{{gameId}}\",\n  \"title\": \"Updated example listing\",\n  \"description\": \"An updated marketplace listing description.\",\n  \"price\": \"125.00\"\n}"
             },
-            "url": "{{baseUrl}}/listings"
+            "url": "{{baseUrl}}/listings/{{listingId}}"
+          }
+        },
+        {
+          "name": "Upload Listing Media",
+          "request": {
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "role", "value": "GALLERY", "type": "text" },
+                { "key": "file", "type": "file", "src": "" }
+              ]
+            },
+            "url": "{{baseUrl}}/listings/{{listingId}}/media",
+            "description": "Choose one allowed file. Change role to COVER, GALLERY or VIDEO as needed."
+          }
+        },
+        {
+          "name": "Deactivate Listing",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/listings/{{listingId}}/deactivate"
           }
         }
       ]

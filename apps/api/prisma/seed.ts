@@ -28,6 +28,46 @@ const accounts = [
   },
 ];
 
+const categories = [
+  {
+    name: "Accounts",
+    slug: "accounts",
+    description: "Progressed accounts ready for a new owner.",
+  },
+  {
+    name: "Game Currency",
+    slug: "game-currency",
+    description: "In-game coins and credit bundles.",
+  },
+  {
+    name: "Items",
+    slug: "items",
+    description: "Rare equipment and inventory items.",
+  },
+  {
+    name: "Skins",
+    slug: "skins",
+    description: "Cosmetic weapon and character collections.",
+  },
+  {
+    name: "Gift Cards",
+    slug: "gift-cards",
+    description: "Digital balance and store cards.",
+  },
+  {
+    name: "Boosting",
+    slug: "boosting",
+    description: "Clearly scoped progression services.",
+  },
+];
+
+const games = [
+  { name: "Arena Protocol", slug: "arena-protocol" },
+  { name: "Elder Realms", slug: "elder-realms" },
+  { name: "Strike Division", slug: "strike-division" },
+  { name: "Rift Legends", slug: "rift-legends" },
+];
+
 async function main() {
   for (const account of accounts) {
     const passwordHash = await bcrypt.hash(account.password, 12);
@@ -49,7 +89,25 @@ async function main() {
     });
   }
 
-  console.log(`Seeded ${accounts.length} demo accounts.`);
+  for (const category of categories) {
+    await prisma.category.upsert({
+      where: { slug: category.slug },
+      update: { name: category.name, description: category.description },
+      create: category,
+    });
+  }
+
+  for (const game of games) {
+    await prisma.game.upsert({
+      where: { slug: game.slug },
+      update: { name: game.name },
+      create: game,
+    });
+  }
+
+  console.log(
+    `Seeded ${accounts.length} demo accounts, ${categories.length} categories and ${games.length} games.`,
+  );
 }
 
 main()

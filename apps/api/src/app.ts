@@ -1,14 +1,20 @@
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import jwt from "@fastify/jwt";
+import multipart from "@fastify/multipart";
+import fastifyStatic from "@fastify/static";
 import Fastify, { type FastifyError } from "fastify";
+import { mkdirSync } from "node:fs";
 
 import { env } from "./config/env.js";
+import { uploadDirectory } from "./config/uploads.js";
 import { AppError } from "./lib/app-error.js";
 import { prisma } from "./lib/prisma.js";
 import { redis } from "./lib/redis.js";
 import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
+import { catalogRoutes } from "./modules/catalog/catalog.routes.js";
+import { listingsRoutes } from "./modules/listings/listings.routes.js";
 import { authPlugin } from "./plugins/auth.js";
 
 interface BuildAppOptions {
@@ -37,6 +43,14 @@ export function buildApp(options: BuildAppOptions = {}) {
     credentials: true,
   });
   app.register(cookie);
+  app.register(multipart);
+  mkdirSync(uploadDirectory, { recursive: true });
+  app.register(fastifyStatic, {
+    root: uploadDirectory,
+    prefix: "/uploads/",
+    decorateReply: false,
+    serveDotFiles: false,
+  });
   app.register(jwt, {
     secret: env.JWT_SECRET,
     cookie: { cookieName: env.AUTH_COOKIE_NAME, signed: false },
@@ -60,6 +74,8 @@ export function buildApp(options: BuildAppOptions = {}) {
 
   app.register(authRoutes, { prefix: "/api/v1/auth" });
   app.register(adminRoutes, { prefix: "/api/v1/admin" });
+  app.register(catalogRoutes, { prefix: "/api/v1" });
+  app.register(listingsRoutes, { prefix: "/api/v1/listings" });
 
   app.setErrorHandler((error, request, reply) => {
     const fastifyError = error as FastifyError;
