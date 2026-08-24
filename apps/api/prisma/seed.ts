@@ -68,6 +68,8 @@ const games = [
   { name: "Rift Legends", slug: "rift-legends" },
 ];
 
+const coinTryRate = "1.000000";
+
 async function main() {
   for (const account of accounts) {
     const passwordHash = await bcrypt.hash(account.password, 12);
@@ -105,8 +107,14 @@ async function main() {
     });
   }
 
+  await prisma.systemSettings.upsert({
+    where: { id: 1 },
+    update: { coinTryRate },
+    create: { id: 1, coinTryRate },
+  });
+
   console.log(
-    `Seeded ${accounts.length} demo accounts, ${categories.length} categories and ${games.length} games.`,
+    `Seeded ${accounts.length} demo accounts, ${categories.length} categories, ${games.length} games and coin/TRY rate ${coinTryRate}.`,
   );
 }
 

@@ -122,6 +122,16 @@ dosyasındadır.
 Ayrıntılı request, response, filtre ve upload sözleşmesi [Listings API
 Contract](docs/api/listings-contract.md) dosyasındadır.
 
+## Wallet API
+
+- `GET /api/v1/wallet` authenticated users için mevcut ve held bakiyeleri döner.
+- `POST /api/v1/wallet/deposit` simüle deposit ile available balance'ı artırır.
+- `POST /api/v1/wallet/withdraw` yalnızca yeterli available balance varsa çekim yapar.
+- Her deposit ve withdrawal işlemi `WalletTransaction` kaydıyla aynı transaction içinde tutulur.
+
+Ayrıntılı request ve response sözleşmesi [Wallet API Contract](docs/api/wallet-contract.md)
+dosyasındadır.
+
 ## Veritabanı Komutları
 
 ```powershell

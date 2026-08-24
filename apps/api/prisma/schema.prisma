@@ -24,6 +24,11 @@ enum ListingMediaRole {
   VIDEO
 }
 
+enum WalletTransactionType {
+  DEPOSIT
+  WITHDRAWAL
+}
+
 model User {
   id           String   @id @default(uuid()) @db.Uuid
   name         String   @db.VarChar(100)
@@ -44,10 +49,38 @@ model Wallet {
   availableBalance Decimal  @default(0) @map("available_balance") @db.Decimal(18, 2)
   heldBalance      Decimal  @default(0) @map("held_balance") @db.Decimal(18, 2)
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions     WalletTransaction[]
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
   @@map("wallets")
+}
+
+model SystemSettings {
+  id          Int      @id @default(1)
+  coinTryRate Decimal  @map("coin_try_rate") @db.Decimal(18, 6)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+model WalletTransaction {
+  id        String                @id @default(uuid()) @db.Uuid
+  walletId  String                @map("wallet_id") @db.Uuid
+  type      WalletTransactionType
+  amount    Decimal               @db.Decimal(18, 2)
+  fee       Decimal               @default(0) @db.Decimal(18, 2)
+  idempotencyKey  String          @unique @map("idempotency_key") @db.VarChar(100)
+  availableBefore Decimal        @map("available_before") @db.Decimal(18, 2)
+  availableAfter  Decimal        @map("available_after") @db.Decimal(18, 2)
+  heldBefore      Decimal        @map("held_before") @db.Decimal(18, 2)
+  heldAfter       Decimal        @map("held_after") @db.Decimal(18, 2)
+  wallet    Wallet                @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  createdAt DateTime              @default(now()) @map("created_at")
+
+  @@index([walletId, createdAt])
+  @@map("wallet_transactions")
 }
 
 model Category {

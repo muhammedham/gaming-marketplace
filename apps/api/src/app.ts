@@ -15,6 +15,7 @@ import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { catalogRoutes } from "./modules/catalog/catalog.routes.js";
 import { listingsRoutes } from "./modules/listings/listings.routes.js";
+import { walletRoutes } from "./modules/wallet/wallet.routes.js";
 import { authPlugin } from "./plugins/auth.js";
 
 interface BuildAppOptions {
@@ -76,6 +77,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   app.register(adminRoutes, { prefix: "/api/v1/admin" });
   app.register(catalogRoutes, { prefix: "/api/v1" });
   app.register(listingsRoutes, { prefix: "/api/v1/listings" });
+  app.register(walletRoutes, { prefix: "/api/v1/wallet" });
 
   app.setErrorHandler((error, request, reply) => {
     const fastifyError = error as FastifyError;
