@@ -62,6 +62,7 @@ const categories = [
 ];
 
 const games = [
+  { name: "Valorant", slug: "valorant" },
   { name: "Arena Protocol", slug: "arena-protocol" },
   { name: "Elder Realms", slug: "elder-realms" },
   { name: "Strike Division", slug: "strike-division" },
