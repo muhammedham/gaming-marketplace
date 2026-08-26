@@ -74,10 +74,13 @@ All Seller endpoints require the `gm_session` cookie and current `SELLER` role.
   from multipart fields. Exactly one Cover is required.
 - `PATCH /listings/:listingId`: updates an owned listing.
 - `POST /listings/:listingId/deactivate`: changes an owned listing to `INACTIVE`.
+- `POST /listings/:listingId/activate`: changes an owned listing back to `ACTIVE`.
 - `POST /listings/:listingId/media`: multipart upload with `role` equal to
   `COVER`, `GALLERY`, or `VIDEO` and one `file` part.
 
-Another Seller receives `403 FORBIDDEN` for update, deactivate or media upload.
+Updating an inactive listing preserves its `INACTIVE` status; activation is an
+explicit action through the activate endpoint. Another Seller receives `403
+FORBIDDEN` for update, activate, deactivate or media upload.
 
 ### Create Listing multipart fields
 

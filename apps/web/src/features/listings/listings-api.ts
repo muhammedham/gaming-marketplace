@@ -1,6 +1,7 @@
 import { apiRequest } from "../../lib/api-client";
 import {
   mockCreateListing,
+  mockActivateListing,
   mockDeactivateListing,
   mockGetListing,
   mockListCategories,
@@ -117,4 +118,10 @@ export function deactivateListing(command: { listingId: string; actor: CreateLis
   return useMockSource
     ? mockDeactivateListing(command.listingId, command.actor)
     : apiRequest<ListingDetail>(`/listings/${command.listingId}/deactivate`, { method: "POST" });
+}
+
+export function activateListing(command: { listingId: string; actor: CreateListingCommand["actor"] }) {
+  return useMockSource
+    ? mockActivateListing(command.listingId, command.actor)
+    : apiRequest<ListingDetail>(`/listings/${command.listingId}/activate`, { method: "POST" });
 }

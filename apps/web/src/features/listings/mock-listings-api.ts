@@ -107,7 +107,7 @@ function listingFromInput(
     excerpt: input.description.trim().slice(0, 110),
     description: input.description.trim(),
     price: Number(input.price).toFixed(2),
-    status: "ACTIVE",
+    status: existing?.status ?? "ACTIVE",
     category,
     game,
     cover: uploadedCover ?? existing?.cover ?? {
@@ -203,6 +203,18 @@ export async function mockDeactivateListing(listingId: string, actor: ListingAct
   assertOwner(current, actor);
 
   const updated = { ...current, status: "INACTIVE" as const, updatedAt: new Date().toISOString() };
+  const stored = readStoredListings().filter((listing) => listing.id !== listingId);
+  writeStoredListings([updated, ...stored]);
+  return updated;
+}
+
+export async function mockActivateListing(listingId: string, actor: ListingActor) {
+  await wait(220);
+  const current = allListings().find((listing) => listing.id === listingId);
+  if (!current) throw new Error("Listing not found.");
+  assertOwner(current, actor);
+
+  const updated = { ...current, status: "ACTIVE" as const, updatedAt: new Date().toISOString() };
   const stored = readStoredListings().filter((listing) => listing.id !== listingId);
   writeStoredListings([updated, ...stored]);
   return updated;

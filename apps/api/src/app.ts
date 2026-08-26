@@ -39,9 +39,16 @@ export function buildApp(options: BuildAppOptions = {}) {
     logger: options.logger ?? (env.NODE_ENV !== "test" ? { level: env.LOG_LEVEL } : false),
   });
 
+  const localWebOrigins = [
+    env.WEB_ORIGIN,
+    env.WEB_ORIGIN.replace("127.0.0.1", "localhost"),
+    env.WEB_ORIGIN.replace("localhost", "127.0.0.1"),
+  ].filter((origin, index, origins) => origins.indexOf(origin) === index);
+
   app.register(cors, {
-    origin: env.WEB_ORIGIN,
+    origin: localWebOrigins,
     credentials: true,
+    methods: ["GET", "HEAD", "POST", "PATCH", "OPTIONS"],
   });
   app.register(cookie);
   app.register(multipart);

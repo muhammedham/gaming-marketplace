@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import { createListing, getListing, listCategories, listGames, updateListing } from "../features/listings/listings-api";
+import { activateListing, createListing, getListing, listCategories, listGames, updateListing } from "../features/listings/listings-api";
 import { validateCover, validateGallery, validateVideo } from "../features/listings/media-validation";
 import { isListingOwner } from "../features/listings/mock-listings-api";
 import { MarketplaceState } from "../features/listings/marketplace-state";
@@ -48,6 +48,15 @@ function ListingEditor({ actor, existing }: { actor: ListingActor; existing?: Li
     onSuccess: async (listing) => {
       await queryClient.invalidateQueries({ queryKey: listingKeys.all });
       navigate(`/listings/${listing.id}`);
+    },
+  });
+  const activateMutation = useMutation({
+    mutationFn: () => activateListing({ listingId: existing!.id, actor }),
+    onSuccess: async (listing) => {
+      queryClient.setQueryData(listingKeys.detail(listing.id), listing);
+      await queryClient.invalidateQueries({ queryKey: listingKeys.all });
+      await queryClient.invalidateQueries({ queryKey: listingKeys.detail(listing.id) });
+      navigate(`/listings/${listing.id}/edit`);
     },
   });
 
@@ -155,10 +164,15 @@ function ListingEditor({ actor, existing }: { actor: ListingActor; existing?: Li
               <div className="p-4">
                 <p className="truncate font-semibold">{input.title || "Listing title"}</p>
                 <p className="mt-2 text-xl font-bold">{input.price || "0.00"} Coin</p>
-                <p className="mt-2 text-xs font-semibold text-emerald-700">Status: ACTIVE</p>
+                <p className={existing?.status === "INACTIVE" ? "mt-2 text-xs font-semibold text-red-700" : "mt-2 text-xs font-semibold text-emerald-700"}>Status: {existing?.status ?? "ACTIVE"}</p>
               </div>
             </div>
-            {(formError || saveMutation.isError) ? <p className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700" role="alert">{formError ?? saveMutation.error?.message}</p> : null}
+            {(formError || saveMutation.isError || activateMutation.isError) ? <p className="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700" role="alert">{formError ?? saveMutation.error?.message ?? activateMutation.error?.message}</p> : null}
+            {editing && existing?.status === "INACTIVE" ? (
+              <Button className="mt-4 w-full" disabled={activateMutation.isPending} onClick={() => activateMutation.mutate()} type="button">
+                {activateMutation.isPending ? "Activating..." : "Activate listing"}
+              </Button>
+            ) : null}
             <Button className="mt-4 w-full" disabled={saveMutation.isPending || categoriesQuery.isPending || gamesQuery.isPending} type="submit">
               <Save className="size-4" aria-hidden="true" />{saveMutation.isPending ? "Saving..." : editing ? "Save changes" : "Publish listing"}
             </Button>

@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Gamepad2, Pencil, ShieldCheck, Store, Tag, UserRound, Video } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Gamepad2, Pencil, ShieldCheck, Store, Tag, UserRound, Video } from "lucide-react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { Button } from "../components/ui/button";
-import { deactivateListing, getListing } from "../features/listings/listings-api";
+import { activateListing, deactivateListing, getListing } from "../features/listings/listings-api";
 import { isListingOwner } from "../features/listings/mock-listings-api";
 import { MarketplaceState } from "../features/listings/marketplace-state";
 import { listingKeys, type ListingActor } from "../features/listings/types";
@@ -18,6 +19,7 @@ export function ListingDetailPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const session = useAuthStore((state) => state.session);
+  const [imageSelection, setImageSelection] = useState({ listingId: "", index: 0 });
   const listingQuery = useQuery({
     queryKey: listingKeys.detail(listingId),
     queryFn: () => getListing(listingId),
@@ -36,6 +38,13 @@ export function ListingDetailPage() {
       navigate("/sell/listings");
     },
   });
+  const activateMutation = useMutation({
+    mutationFn: () => activateListing({ listingId, actor: actor! }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: listingKeys.all });
+      await queryClient.invalidateQueries({ queryKey: listingKeys.detail(listingId) });
+    },
+  });
 
   if (listingQuery.isPending) {
     return <MarketplaceState kind="loading" title="Loading listing" description="Retrieving the listing details and media." />;
@@ -47,6 +56,11 @@ export function ListingDetailPage() {
 
   const listing = listingQuery.data;
   const images = [listing.cover, ...listing.gallery];
+  const activeImageIndex = imageSelection.listingId === listingId ? imageSelection.index : 0;
+  const activeImage = images[Math.min(activeImageIndex, images.length - 1)];
+  const selectImage = (index: number) => setImageSelection({ listingId, index });
+  const previousImage = () => selectImage((activeImageIndex - 1 + images.length) % images.length);
+  const nextImage = () => selectImage((activeImageIndex + 1) % images.length);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -58,15 +72,46 @@ export function ListingDetailPage() {
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(19rem,0.65fr)]">
         <section className="min-w-0" aria-label="Listing media">
-          <div className="aspect-[4/3] overflow-hidden rounded-md border border-gray-200 bg-white">
-            <img className="h-full w-full object-cover" src={listing.cover.url} alt={listing.cover.alt} />
+          <div className="relative aspect-[4/3] overflow-hidden rounded-md border border-gray-200 bg-white">
+            <img className="h-full w-full object-cover" src={activeImage.url} alt={activeImage.alt} />
+            {images.length > 1 ? (
+              <>
+                <Button
+                  aria-label="Previous image"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-gray-950/75 text-white hover:bg-gray-950"
+                  size="icon"
+                  type="button"
+                  onClick={previousImage}
+                >
+                  <ChevronLeft className="size-5" aria-hidden="true" />
+                </Button>
+                <Button
+                  aria-label="Next image"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-gray-950/75 text-white hover:bg-gray-950"
+                  size="icon"
+                  type="button"
+                  onClick={nextImage}
+                >
+                  <ChevronRight className="size-5" aria-hidden="true" />
+                </Button>
+                <span className="absolute bottom-3 right-3 rounded-full bg-gray-950/75 px-2.5 py-1 text-xs font-semibold text-white">
+                  {activeImageIndex + 1} / {images.length}
+                </span>
+              </>
+            ) : null}
           </div>
           {images.length > 1 ? (
             <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-5">
-              {images.map((image) => (
-                <div className="aspect-square overflow-hidden rounded-md border border-gray-200 bg-white" key={image.id}>
+              {images.map((image, index) => (
+                <button
+                  aria-label={`View image ${index + 1}`}
+                  className={`aspect-square overflow-hidden rounded-md border-2 bg-white ${index === activeImageIndex ? "border-emerald-600" : "border-gray-200"}`}
+                  key={image.id}
+                  type="button"
+                  onClick={() => selectImage(index)}
+                >
                   <img className="h-full w-full object-cover" src={image.url} alt={image.alt} />
-                </div>
+                </button>
               ))}
             </div>
           ) : null}
@@ -122,10 +167,15 @@ export function ListingDetailPage() {
                 <Button variant="danger" disabled={deactivateMutation.isPending} onClick={() => deactivateMutation.mutate()}>
                   {deactivateMutation.isPending ? "Deactivating..." : "Deactivate"}
                 </Button>
-              ) : null}
+              ) : (
+                <Button disabled={activateMutation.isPending} onClick={() => activateMutation.mutate()}>
+                  {activateMutation.isPending ? "Activating..." : "Activate"}
+                </Button>
+              )}
             </div>
           ) : null}
           {deactivateMutation.isError ? <p className="mt-3 text-sm text-red-700">{deactivateMutation.error.message}</p> : null}
+          {activateMutation.isError ? <p className="mt-3 text-sm text-red-700">{activateMutation.error.message}</p> : null}
         </section>
       </div>
     </div>

@@ -323,6 +323,19 @@ export async function deactivateListing(listingId: string, sellerId: string) {
   return toListingDetail(listing);
 }
 
+export async function activateListing(listingId: string, sellerId: string) {
+  const listing = await prisma.$transaction(async (tx) => {
+    await ownedListing(tx, listingId, sellerId);
+    return tx.listing.update({
+      where: { id: listingId },
+      data: { status: ListingStatus.ACTIVE },
+      include: listingInclude,
+    });
+  });
+
+  return toListingDetail(listing);
+}
+
 export async function addListingMedia(
   listingId: string,
   sellerId: string,

@@ -117,6 +117,7 @@ dosyasındadır.
 | `POST /api/v1/listings` | Seller | Cover zorunlu atomik multipart create |
 | `PATCH /api/v1/listings/:listingId` | Owner Seller | İlan bilgilerini güncelleme |
 | `POST /api/v1/listings/:listingId/deactivate` | Owner Seller | Pasifleştirme |
+| `POST /api/v1/listings/:listingId/activate` | Owner Seller | Pasif ilanı yeniden aktifleştirme |
 | `POST /api/v1/listings/:listingId/media` | Owner Seller | Cover/Gallery/Video upload |
 
 Ayrıntılı request, response, filtre ve upload sözleşmesi [Listings API

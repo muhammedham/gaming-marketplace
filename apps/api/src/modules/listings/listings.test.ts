@@ -269,6 +269,24 @@ describe("Sprint 2 Listings API", () => {
     });
     const publicList = await app.inject({ method: "GET", url: "/api/v1/listings?category=test-skins" });
     const publicDetail = await app.inject({ method: "GET", url: `/api/v1/listings/${listingId}` });
+    const inactiveUpdate = await app.inject({
+      method: "PATCH",
+      url: `/api/v1/listings/${listingId}`,
+      headers: { cookie: ownerCookie },
+      payload: {
+        categoryId,
+        gameId: null,
+        title: "Updated While Inactive",
+        description: "The inactive status must survive an ordinary listing edit.",
+        price: "180.00",
+      },
+    });
+    const activateResponse = await app.inject({
+      method: "POST",
+      url: `/api/v1/listings/${listingId}/activate`,
+      headers: { cookie: ownerCookie },
+    });
+    const publicListAfterActivate = await app.inject({ method: "GET", url: "/api/v1/listings?category=test-skins" });
     const ownerDetail = await app.inject({
       method: "GET",
       url: `/api/v1/listings/${listingId}`,
@@ -290,8 +308,13 @@ describe("Sprint 2 Listings API", () => {
     expect(ownerDeactivate.json().data.status).toBe("INACTIVE");
     expect(publicList.json().data.pagination.total).toBe(0);
     expect(publicDetail.statusCode).toBe(404);
+    expect(inactiveUpdate.statusCode).toBe(200);
+    expect(inactiveUpdate.json().data.status).toBe("INACTIVE");
+    expect(activateResponse.statusCode).toBe(200);
+    expect(activateResponse.json().data.status).toBe("ACTIVE");
+    expect(publicListAfterActivate.json().data.items).toContainEqual(expect.objectContaining({ id: listingId, status: "ACTIVE" }));
     expect(ownerDetail.statusCode).toBe(200);
-    expect(mine.json().data.items).toContainEqual(expect.objectContaining({ id: listingId, status: "INACTIVE" }));
+    expect(mine.json().data.items).toContainEqual(expect.objectContaining({ id: listingId, status: "ACTIVE" }));
   });
 
   it("uploads gallery and optional video media while cards keep Cover-only payloads", async () => {
@@ -381,5 +404,21 @@ describe("Sprint 2 Listings API", () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.json().error.code).toBe("INVALID_PRICE_RANGE");
+  });
+
+  it("allows browser preflight for JSON listing updates", async () => {
+    const response = await app.inject({
+      method: "OPTIONS",
+      url: "/api/v1/listings/example-id",
+      headers: {
+        origin: "http://localhost:5173",
+        "access-control-request-method": "PATCH",
+        "access-control-request-headers": "content-type",
+      },
+    });
+
+    expect(response.statusCode).toBe(204);
+    expect(response.headers["access-control-allow-origin"]).toBe("http://localhost:5173");
+    expect(response.headers["access-control-allow-methods"]).toContain("PATCH");
   });
 });

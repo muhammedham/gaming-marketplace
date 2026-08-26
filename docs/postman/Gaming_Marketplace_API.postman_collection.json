@@ -214,6 +214,13 @@
             "method": "POST",
             "url": "{{baseUrl}}/listings/{{listingId}}/deactivate"
           }
+        },
+        {
+          "name": "Activate Listing",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/listings/{{listingId}}/activate"
+          }
         }
       ]
     },

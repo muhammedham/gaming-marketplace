@@ -16,6 +16,7 @@ import {
 } from "./listings.media.js";
 import {
   addListingMedia,
+  activateListing,
   assertListingOwner,
   createListingWithMedia,
   deactivateListing,
@@ -102,6 +103,14 @@ export async function listingsRoutes(app: FastifyInstance) {
     { preHandler: sellerOnly(app), schema: { params: ListingParamsSchema } },
     async (request) => ({
       data: await deactivateListing(request.params.listingId, request.user.sub),
+    }),
+  );
+
+  app.post<{ Params: ListingParams }>(
+    "/:listingId/activate",
+    { preHandler: sellerOnly(app), schema: { params: ListingParamsSchema } },
+    async (request) => ({
+      data: await activateListing(request.params.listingId, request.user.sub),
     }),
   );
 
