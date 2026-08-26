@@ -1,48 +1,78 @@
-# Wallet API Contract
+# Wallet API Contract (Sprint 3)
 
-Wallet operations use the authenticated `gm_session` cookie and serialize all
-money values as strings. Deposit and withdrawal are simulated in the MVP.
+Wallet operations use the authenticated `gm_session` cookie. All money values
+are serialized as strings. Deposit and withdrawal are deliberately simulated:
+there is no external payment provider or bank transfer.
 
 ## `GET /wallet`
 
-Returns the current wallet:
+Returns available/held Coin balances and the current simulation settings:
 
 ```json
 {
   "data": {
     "availableBalance": "25.00",
     "heldBalance": "0.00",
-    "currency": "COIN"
+    "currency": "COIN",
+    "coinTryRate": "1.000000",
+    "withdrawalFeeRate": "0.000000",
+    "simulation": true
   }
 }
 ```
 
-## `POST /wallet/deposit`
+## `POST /wallet/deposits/simulate`
 
-Request (with a unique key per operation):
-
-```json
-{ "amount": "25.00", "idempotencyKey": "deposit-buyer-001" }
-```
-
-Returns `200` with the updated wallet. The balance update and transaction audit
-record are created in one database transaction.
-
-## `POST /wallet/withdraw`
-
-Request (with a unique key per operation):
+`amountTry` is converted to Coin using `coinTryRate` (`Coin = TRY / rate`).
+`idempotencyKey` is required and globally unique.
 
 ```json
-{ "amount": "10.00", "idempotencyKey": "withdraw-buyer-001" }
+{ "amountTry": "25.00", "idempotencyKey": "deposit-buyer-001" }
 ```
 
-Returns `200` with the updated wallet. The operation can only reduce
-`availableBalance`; held funds cannot be withdrawn. A withdrawal larger than
-the available balance returns `400 INSUFFICIENT_FUNDS` and changes nothing.
+Returns `201` with the deposit detail, wallet snapshot and its explanatory
+`WalletTransaction`. The detail and ledger row are committed atomically.
 
-Amounts must be positive decimal strings with at most two fractional digits.
-Unauthenticated requests return `401`.
+## `POST /wallet/withdrawals/preview`
 
-Repeating a request with the same key and amount returns the original result
-without changing the balance. Reusing a key with a different operation or
-amount returns `409 IDEMPOTENCY_KEY_REUSED`.
+Preview never mutates the wallet. It calculates the configured fee and net TRY
+amount and reports whether the current available balance is sufficient:
+
+```json
+{ "amountCoin": "10.00" }
+```
+
+## `POST /wallet/withdrawals/simulate`
+
+Creates a simulated withdrawal after validating the Turkish IBAN and account
+holder name. Only the masked IBAN is stored.
+
+```json
+{
+  "amountCoin": "10.00",
+  "iban": "TR000000000000000000000000",
+  "accountHolderName": "Name Surname",
+  "idempotencyKey": "withdraw-buyer-001"
+}
+```
+
+If the amount exceeds `availableBalance`, the endpoint returns `400
+INSUFFICIENT_FUNDS` and does not create a withdrawal, transaction, or balance
+change. Repeating a request with the same key and amount returns the original
+result; reusing a key with a different operation or amount returns `409
+IDEMPOTENCY_KEY_REUSED`.
+
+## History endpoints
+
+- `GET /wallet/transactions?page=1&limit=20` returns the append-only ledger and
+  pagination metadata.
+- `GET /wallet/deposits?page=1&limit=20` returns simulated deposit details.
+- `GET /wallet/withdrawals?page=1&limit=20` returns simulated withdrawal details.
+
+Every successful balance change has exactly one ledger record with before/after
+snapshots and a human-readable description. Database checks prevent negative
+balances and a trigger prevents updates to existing ledger rows. All state
+changes execute inside a database transaction with a wallet row lock.
+
+Legacy `POST /wallet/deposit` and `POST /wallet/withdraw` remain available for
+backward compatibility and use the same simulation/ledger implementation.

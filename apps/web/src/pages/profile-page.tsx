@@ -1,4 +1,5 @@
 import { BadgeCheck, Mail, WalletCards } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { useAuthStore } from "../store/auth-store";
 
@@ -54,6 +55,9 @@ export function ProfilePage() {
               <dd className="mt-1 text-lg font-semibold">{session.wallet.heldBalance} Coin</dd>
             </div>
           </dl>
+          <Link className="mt-5 inline-flex text-sm font-semibold text-emerald-700 hover:text-emerald-900" to="/wallet">
+            Open wallet and transaction history →
+          </Link>
         </aside>
       </div>
     </div>

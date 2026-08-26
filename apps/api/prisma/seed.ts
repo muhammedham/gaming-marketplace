@@ -69,6 +69,7 @@ const games = [
 ];
 
 const coinTryRate = "1.000000";
+const withdrawalFeeRate = process.env.WITHDRAWAL_FEE_RATE ?? "0.000000";
 
 async function main() {
   for (const account of accounts) {
@@ -109,12 +110,12 @@ async function main() {
 
   await prisma.systemSettings.upsert({
     where: { id: 1 },
-    update: { coinTryRate },
-    create: { id: 1, coinTryRate },
+    update: { coinTryRate, withdrawalFeeRate },
+    create: { id: 1, coinTryRate, withdrawalFeeRate },
   });
 
   console.log(
-    `Seeded ${accounts.length} demo accounts, ${categories.length} categories, ${games.length} games and coin/TRY rate ${coinTryRate}.`,
+    `Seeded ${accounts.length} demo accounts, ${categories.length} categories, ${games.length} games, coin/TRY rate ${coinTryRate} and withdrawal fee rate ${withdrawalFeeRate}.`,
   );
 }
 

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Gaming Marketplace API",
-    "description": "Sprint 1 Auth and Sprint 2 Catalog/Listings endpoints are implemented. Wallet, Orders and Support remain future-sprint contracts. Login cookies are stored automatically by Postman's cookie jar.",
+    "description": "Sprint 1 Auth, Sprint 2 Catalog/Listings and Sprint 3 Wallet simulation endpoints are implemented. Orders and Support remain future-sprint contracts. Login cookies are stored automatically by Postman's cookie jar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -218,7 +218,7 @@
       ]
     },
     {
-      "name": "Wallet - Future Sprint",
+      "name": "Wallet - Sprint 3 Simulation",
       "item": [
         {
           "name": "Wallet Summary",
@@ -232,8 +232,17 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"amountTry\": \"500.00\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"amountTry\": \"500.00\",\n  \"idempotencyKey\": \"deposit-postman-001\"\n}" },
             "url": "{{baseUrl}}/wallet/deposits/simulate"
+          }
+        },
+        {
+          "name": "Withdrawal Preview",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"amountCoin\": \"100.00\"\n}" },
+            "url": "{{baseUrl}}/wallet/withdrawals/preview"
           }
         },
         {
@@ -241,8 +250,29 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"amount\": \"100.00\",\n  \"iban\": \"TR000000000000000000000000\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"amountCoin\": \"100.00\",\n  \"iban\": \"TR000000000000000000000000\",\n  \"accountHolderName\": \"Demo Buyer\",\n  \"idempotencyKey\": \"withdraw-postman-001\"\n}" },
             "url": "{{baseUrl}}/wallet/withdrawals/simulate"
+          }
+        },
+        {
+          "name": "Transaction History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/wallet/transactions?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Deposit History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/wallet/deposits?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Withdrawal History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/wallet/withdrawals?page=1&limit=20"
           }
         }
       ]

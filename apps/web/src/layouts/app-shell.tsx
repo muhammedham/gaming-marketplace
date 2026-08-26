@@ -50,6 +50,12 @@ export function AppShell() {
               <LayoutGrid className="size-4" aria-hidden="true" />
               <span className="hidden sm:inline">Browse</span>
             </NavLink>
+            {session ? (
+              <NavLink className={navLinkClass} to="/wallet">
+                <WalletCards className="size-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Wallet</span>
+              </NavLink>
+            ) : null}
             {session?.user.role === "SELLER" ? (
               <NavLink className={navLinkClass} to="/sell/listings">
                 <Store className="size-4" aria-hidden="true" />

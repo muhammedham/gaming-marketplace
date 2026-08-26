@@ -29,58 +29,107 @@ enum WalletTransactionType {
   WITHDRAWAL
 }
 
+enum SimulationStatus {
+  COMPLETED
+}
+
 model User {
-  id           String   @id @default(uuid()) @db.Uuid
-  name         String   @db.VarChar(100)
-  email        String   @unique @db.VarChar(255)
-  passwordHash String   @map("password_hash") @db.VarChar(255)
-  role         UserRole @default(BUYER)
+  id           String    @id @default(uuid()) @db.Uuid
+  name         String    @db.VarChar(100)
+  email        String    @unique @db.VarChar(255)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  role         UserRole  @default(BUYER)
   wallet       Wallet?
   listings     Listing[]
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   @@map("users")
 }
 
 model Wallet {
-  id               String   @id @default(uuid()) @db.Uuid
-  userId           String   @unique @map("user_id") @db.Uuid
-  availableBalance Decimal  @default(0) @map("available_balance") @db.Decimal(18, 2)
-  heldBalance      Decimal  @default(0) @map("held_balance") @db.Decimal(18, 2)
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String              @id @default(uuid()) @db.Uuid
+  userId           String              @unique @map("user_id") @db.Uuid
+  availableBalance Decimal             @default(0) @map("available_balance") @db.Decimal(18, 2)
+  heldBalance      Decimal             @default(0) @map("held_balance") @db.Decimal(18, 2)
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions     WalletTransaction[]
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  deposits         Deposit[]
+  withdrawals      Withdrawal[]
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
 
   @@map("wallets")
 }
 
 model SystemSettings {
-  id          Int      @id @default(1)
-  coinTryRate Decimal  @map("coin_try_rate") @db.Decimal(18, 6)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id                Int      @id @default(1)
+  coinTryRate       Decimal  @map("coin_try_rate") @db.Decimal(18, 6)
+  withdrawalFeeRate Decimal  @default(0) @map("withdrawal_fee_rate") @db.Decimal(9, 6)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   @@map("system_settings")
 }
 
 model WalletTransaction {
-  id        String                @id @default(uuid()) @db.Uuid
-  walletId  String                @map("wallet_id") @db.Uuid
-  type      WalletTransactionType
-  amount    Decimal               @db.Decimal(18, 2)
-  fee       Decimal               @default(0) @db.Decimal(18, 2)
-  idempotencyKey  String          @unique @map("idempotency_key") @db.VarChar(100)
-  availableBefore Decimal        @map("available_before") @db.Decimal(18, 2)
-  availableAfter  Decimal        @map("available_after") @db.Decimal(18, 2)
-  heldBefore      Decimal        @map("held_before") @db.Decimal(18, 2)
-  heldAfter       Decimal        @map("held_after") @db.Decimal(18, 2)
-  wallet    Wallet                @relation(fields: [walletId], references: [id], onDelete: Cascade)
-  createdAt DateTime              @default(now()) @map("created_at")
+  id              String                @id @default(uuid()) @db.Uuid
+  walletId        String                @map("wallet_id") @db.Uuid
+  type            WalletTransactionType
+  amount          Decimal               @db.Decimal(18, 2)
+  fee             Decimal               @default(0) @db.Decimal(18, 2)
+  idempotencyKey  String                @unique @map("idempotency_key") @db.VarChar(100)
+  availableBefore Decimal               @map("available_before") @db.Decimal(18, 2)
+  availableAfter  Decimal               @map("available_after") @db.Decimal(18, 2)
+  heldBefore      Decimal               @map("held_before") @db.Decimal(18, 2)
+  heldAfter       Decimal               @map("held_after") @db.Decimal(18, 2)
+  description     String                @default("") @db.VarChar(255)
+  ledgerSequence  Int                   @unique @default(autoincrement()) @map("ledger_sequence")
+  wallet          Wallet                @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  deposit         Deposit?
+  withdrawal      Withdrawal?
+  createdAt       DateTime              @default(now()) @map("created_at")
+
+  @@index([walletId, ledgerSequence])
+  @@map("wallet_transactions")
+}
+
+model Deposit {
+  id             String            @id @default(uuid()) @db.Uuid
+  walletId       String            @map("wallet_id") @db.Uuid
+  transactionId  String            @unique @map("transaction_id") @db.Uuid
+  amountTry      Decimal           @map("amount_try") @db.Decimal(18, 2)
+  coinTryRate    Decimal           @map("coin_try_rate") @db.Decimal(18, 6)
+  coinAmount     Decimal           @map("coin_amount") @db.Decimal(18, 2)
+  idempotencyKey String            @unique @map("idempotency_key") @db.VarChar(100)
+  status         SimulationStatus  @default(COMPLETED)
+  wallet         Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  transaction    WalletTransaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  createdAt      DateTime          @default(now()) @map("created_at")
 
   @@index([walletId, createdAt])
-  @@map("wallet_transactions")
+  @@map("deposits")
+}
+
+model Withdrawal {
+  id                String            @id @default(uuid()) @db.Uuid
+  walletId          String            @map("wallet_id") @db.Uuid
+  transactionId     String            @unique @map("transaction_id") @db.Uuid
+  amountCoin        Decimal           @map("amount_coin") @db.Decimal(18, 2)
+  coinTryRate       Decimal           @map("coin_try_rate") @db.Decimal(18, 6)
+  feeRate           Decimal           @map("fee_rate") @db.Decimal(9, 6)
+  feeCoin           Decimal           @map("fee_coin") @db.Decimal(18, 2)
+  netAmountTry      Decimal           @map("net_amount_try") @db.Decimal(18, 2)
+  ibanMasked        String            @map("iban_masked") @db.VarChar(32)
+  accountHolderName String            @map("account_holder_name") @db.VarChar(100)
+  idempotencyKey    String            @unique @map("idempotency_key") @db.VarChar(100)
+  status            SimulationStatus  @default(COMPLETED)
+  wallet            Wallet            @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  transaction       WalletTransaction @relation(fields: [transactionId], references: [id], onDelete: Restrict)
+  createdAt         DateTime          @default(now()) @map("created_at")
+
+  @@index([walletId, createdAt])
+  @@map("withdrawals")
 }
 
 model Category {
@@ -130,16 +179,16 @@ model Listing {
 }
 
 model ListingMedia {
-  id          String           @id @default(uuid()) @db.Uuid
-  listingId   String           @map("listing_id") @db.Uuid
-  role        ListingMediaRole
-  storageKey  String           @unique @map("storage_key") @db.VarChar(500)
-  mimeType    String           @map("mime_type") @db.VarChar(100)
-  sizeBytes   Int              @map("size_bytes")
-  altText     String           @map("alt_text") @db.VarChar(255)
-  sortOrder   Int              @default(0) @map("sort_order")
-  listing     Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  createdAt   DateTime         @default(now()) @map("created_at")
+  id         String           @id @default(uuid()) @db.Uuid
+  listingId  String           @map("listing_id") @db.Uuid
+  role       ListingMediaRole
+  storageKey String           @unique @map("storage_key") @db.VarChar(500)
+  mimeType   String           @map("mime_type") @db.VarChar(100)
+  sizeBytes  Int              @map("size_bytes")
+  altText    String           @map("alt_text") @db.VarChar(255)
+  sortOrder  Int              @default(0) @map("sort_order")
+  listing    Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt  DateTime         @default(now()) @map("created_at")
 
   @@index([listingId, role, sortOrder])
   @@map("listing_media")

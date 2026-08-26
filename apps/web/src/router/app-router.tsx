@@ -11,6 +11,7 @@ import { NotFoundPage } from "../pages/not-found-page";
 import { ProfilePage } from "../pages/profile-page";
 import { RegisterPage } from "../pages/register-page";
 import { SellerListingsPage } from "../pages/seller-listings-page";
+import { WalletPage } from "../pages/wallet-page";
 import { ProtectedRoute } from "../routes/protected-route";
 
 export const appRoutes: RouteObject[] = [
@@ -23,7 +24,10 @@ export const appRoutes: RouteObject[] = [
       { path: "listings/:listingId", element: <ListingDetailPage /> },
       {
         element: <ProtectedRoute />,
-        children: [{ path: "profile", element: <ProfilePage /> }],
+        children: [
+          { path: "profile", element: <ProfilePage /> },
+          { path: "wallet", element: <WalletPage /> },
+        ],
       },
       {
         element: <ProtectedRoute roles={["SELLER"]} />,

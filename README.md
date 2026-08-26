@@ -124,10 +124,13 @@ Contract](docs/api/listings-contract.md) dosyasındadır.
 
 ## Wallet API
 
-- `GET /api/v1/wallet` authenticated users için mevcut ve held bakiyeleri döner.
-- `POST /api/v1/wallet/deposit` simüle deposit ile available balance'ı artırır.
-- `POST /api/v1/wallet/withdraw` yalnızca yeterli available balance varsa çekim yapar.
-- Her deposit ve withdrawal işlemi `WalletTransaction` kaydıyla aynı transaction içinde tutulur.
+- `GET /api/v1/wallet` available/held Coin bakiyelerini ve Coin/TRY ile withdrawal fee simülasyon ayarlarını döner.
+- `POST /api/v1/wallet/deposits/simulate` TRY tutarını rate üzerinden Coin'e çevirir ve atomik ledger kaydı oluşturur.
+- `POST /api/v1/wallet/withdrawals/preview` ücret ve net TRY tutarını hesaplar; bakiye değiştirmez.
+- `POST /api/v1/wallet/withdrawals/simulate` IBAN bilgisiyle simüle çekim yapar ve yalnızca maskelenmiş IBAN saklar.
+- `GET /api/v1/wallet/transactions`, `/deposits` ve `/withdrawals` sayfalı geçmiş döner.
+- Her bakiye değişimi açıklamalı tek bir `WalletTransaction` kaydıyla aynı transaction içinde tutulur; ledger satırları append-only'dir.
+- Sprint 3 UI'sındaki Wallet sayfası simulation-only uyarısı, bakiye kartları, deposit formu, withdrawal preview/formu ve geçmişi içerir.
 
 Ayrıntılı request ve response sözleşmesi [Wallet API Contract](docs/api/wallet-contract.md)
 dosyasındadır.
