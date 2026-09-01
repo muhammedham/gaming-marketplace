@@ -106,6 +106,7 @@ export function ListingFiltersForm({ categories, games, value, lockedCategory, o
             onChange={(event) => setDraft({ ...draft, sort: event.target.value as ListingSort })}
           >
             <option value="newest">Newest</option>
+            <option value="popular">Most purchased</option>
             <option value="price_asc">Price: low to high</option>
             <option value="price_desc">Price: high to low</option>
           </select>

@@ -200,7 +200,9 @@ export async function listListings(query: ListingQuery) {
   };
 
   const orderBy: Prisma.ListingOrderByWithRelationInput[] =
-    query.sort === "price_asc"
+    query.sort === "popular"
+      ? [{ orders: { _count: "desc" } }, { createdAt: "desc" }, { id: "desc" }]
+      : query.sort === "price_asc"
       ? [{ price: "asc" }, { createdAt: "desc" }, { id: "desc" }]
       : query.sort === "price_desc"
         ? [{ price: "desc" }, { createdAt: "desc" }, { id: "desc" }]

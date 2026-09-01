@@ -17,6 +17,7 @@ export const ListingQuerySchema = Type.Object({
   maxPrice: Type.Optional(DecimalStringSchema),
   sort: Type.Optional(Type.Union([
     Type.Literal("newest"),
+    Type.Literal("popular"),
     Type.Literal("price_asc"),
     Type.Literal("price_desc"),
   ])),

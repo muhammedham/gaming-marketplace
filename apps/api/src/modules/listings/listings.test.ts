@@ -189,6 +189,13 @@ describe("Sprint 2 Listings API", () => {
       title: "Neon Test Listing",
       cover: { role: "COVER" },
     });
+
+    const popularResponse = await app.inject({
+      method: "GET",
+      url: "/api/v1/listings?game=test-arena&sort=popular&limit=4",
+    });
+    expect(popularResponse.statusCode).toBe(200);
+    expect(popularResponse.json().data.items[0].id).toBe(response.json().data.id);
   });
 
   it("lists the seeded taxonomy using the standard response format", async () => {

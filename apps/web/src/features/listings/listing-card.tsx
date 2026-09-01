@@ -9,9 +9,9 @@ function formatDate(value: string) {
 
 export function ListingCard({ listing }: { listing: ListingSummary }) {
   return (
-    <article className="group min-w-0 overflow-hidden rounded-md border border-gray-200 bg-white transition-colors hover:border-gray-400">
+    <article className="group min-w-0 overflow-hidden rounded-2xl border border-[#758173]/30 bg-[#FEF5EF] transition duration-200 hover:-translate-y-1 hover:border-[#912F56] hover:shadow-xl">
       <Link className="block" to={`/listings/${listing.id}`}>
-        <div className="aspect-[3/2] overflow-hidden bg-gray-100">
+        <div className="aspect-[3/2] overflow-hidden bg-[#758173]/15">
           <img
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             src={listing.cover.url}
@@ -20,7 +20,7 @@ export function ListingCard({ listing }: { listing: ListingSummary }) {
         </div>
         <div className="p-4">
           <div className="flex min-w-0 items-center justify-between gap-3 text-xs text-gray-500">
-            <span className="truncate font-semibold uppercase text-emerald-700">{listing.category.name}</span>
+            <span className="truncate font-semibold uppercase text-[#912F56]">{listing.category.name}</span>
             <span className="flex shrink-0 items-center gap-1">
               <Clock3 className="size-3.5" aria-hidden="true" />
               {formatDate(listing.createdAt)}

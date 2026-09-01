@@ -1,10 +1,60 @@
 @import "tailwindcss";
 
+@theme {
+  --color-white: #fef5ef;
+  --color-black: #191102;
+
+  --color-gray-50: color-mix(in srgb, #fef5ef 96%, #758173);
+  --color-gray-100: color-mix(in srgb, #fef5ef 88%, #758173);
+  --color-gray-200: color-mix(in srgb, #fef5ef 72%, #758173);
+  --color-gray-300: color-mix(in srgb, #fef5ef 55%, #758173);
+  --color-gray-400: #758173;
+  --color-gray-500: color-mix(in srgb, #758173 72%, #191102);
+  --color-gray-600: color-mix(in srgb, #758173 55%, #191102);
+  --color-gray-700: color-mix(in srgb, #758173 38%, #191102);
+  --color-gray-800: color-mix(in srgb, #758173 22%, #191102);
+  --color-gray-900: color-mix(in srgb, #758173 10%, #191102);
+  --color-gray-950: #191102;
+
+  --color-emerald-50: color-mix(in srgb, #fef5ef 92%, #912f56);
+  --color-emerald-100: color-mix(in srgb, #fef5ef 82%, #912f56);
+  --color-emerald-200: color-mix(in srgb, #fef5ef 68%, #912f56);
+  --color-emerald-300: color-mix(in srgb, #fef5ef 52%, #912f56);
+  --color-emerald-400: color-mix(in srgb, #fef5ef 28%, #912f56);
+  --color-emerald-500: color-mix(in srgb, #fef5ef 14%, #912f56);
+  --color-emerald-600: #912f56;
+  --color-emerald-700: color-mix(in srgb, #912f56 84%, #191102);
+  --color-emerald-800: color-mix(in srgb, #912f56 68%, #191102);
+  --color-emerald-900: color-mix(in srgb, #912f56 52%, #191102);
+
+  --color-blue-50: color-mix(in srgb, #fef5ef 92%, #0d2149);
+  --color-blue-100: color-mix(in srgb, #fef5ef 82%, #0d2149);
+  --color-blue-200: color-mix(in srgb, #fef5ef 68%, #0d2149);
+  --color-blue-300: color-mix(in srgb, #fef5ef 52%, #0d2149);
+  --color-blue-600: color-mix(in srgb, #0d2149 86%, #fef5ef);
+  --color-blue-700: #0d2149;
+  --color-blue-800: color-mix(in srgb, #0d2149 88%, #191102);
+  --color-blue-900: color-mix(in srgb, #0d2149 76%, #191102);
+  --color-blue-950: color-mix(in srgb, #0d2149 64%, #191102);
+
+  --color-red-50: color-mix(in srgb, #fef5ef 92%, #912f56);
+  --color-red-100: color-mix(in srgb, #fef5ef 80%, #912f56);
+  --color-red-200: color-mix(in srgb, #fef5ef 64%, #912f56);
+  --color-red-700: color-mix(in srgb, #912f56 84%, #191102);
+  --color-red-800: color-mix(in srgb, #912f56 68%, #191102);
+
+  --color-amber-50: color-mix(in srgb, #fef5ef 86%, #758173);
+  --color-amber-100: color-mix(in srgb, #fef5ef 72%, #758173);
+  --color-amber-200: color-mix(in srgb, #fef5ef 54%, #758173);
+  --color-amber-700: color-mix(in srgb, #758173 58%, #191102);
+  --color-amber-900: color-mix(in srgb, #758173 30%, #191102);
+}
+
 :root {
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #111827;
-  background: #f9fafb;
+  color: #191102;
+  background: #fef5ef;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -15,13 +65,17 @@
 
 html {
   min-width: 320px;
-  background: #f9fafb;
+  scroll-behavior: smooth;
+  background: #fef5ef;
 }
 
 body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  background:
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, #912f56 9%, transparent), transparent 28rem),
+    #fef5ef;
 }
 
 button,
@@ -32,6 +86,6 @@ textarea {
 }
 
 ::selection {
-  color: #052e16;
-  background: #a7f3d0;
+  color: #fef5ef;
+  background: #912f56;
 }

@@ -1,6 +1,6 @@
 export type ListingStatus = "ACTIVE" | "INACTIVE";
 export type MediaRole = "COVER" | "GALLERY" | "VIDEO";
-export type ListingSort = "newest" | "price_asc" | "price_desc";
+export type ListingSort = "newest" | "popular" | "price_asc" | "price_desc";
 
 export interface Category {
   id: string;

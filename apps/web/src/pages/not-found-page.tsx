@@ -7,7 +7,7 @@ export function NotFoundPage() {
     <div className="grid min-h-[70vh] place-items-center px-4 text-center">
       <div>
         <p className="text-sm font-semibold text-emerald-700"></p>
-        <h1 className="mt-2 text-3xl font-bold">Done you can head back to the main page!</h1>
+        <h1 className="mt-2 text-3xl font-bold">head back to the main page!</h1>
         <Button asChild className="mt-6">
           <Link to="/">Back to marketplace</Link>
         </Button>
