@@ -5,6 +5,7 @@ export interface AuthUser {
   name: string;
   email: string;
   role: UserRole;
+  status?: "ACTIVE" | "SUSPENDED";
 }
 
 export interface WalletSummary {

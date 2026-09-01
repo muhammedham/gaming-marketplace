@@ -1,0 +1,614 @@
+{
+  "info": {
+    "name": "Gaming Marketplace - Sprint 4",
+    "description": "Local simulation only. Run npm run demo:sprint4, set listingId to its output, then follow docs/sprint-4/README.md. Select requests manually: confirm, support/refund and cancel are alternate paths. Cookies use Postman's jar. No real payments.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:4000/api/v1"
+    },
+    {
+      "key": "listingId",
+      "value": ""
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    },
+    {
+      "key": "conversationId",
+      "value": ""
+    },
+    {
+      "key": "ticketId",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
+      "value": ""
+    },
+    {
+      "key": "sellerId",
+      "value": ""
+    },
+    {
+      "key": "listingPrice",
+      "value": "40.00"
+    }
+  ],
+  "auth": {
+    "type": "noauth"
+  },
+  "item": [
+    {
+      "name": "1 - Sessions and wallet",
+      "item": [
+        {
+          "name": "Login Sprint 4 buyer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sprint4-buyer@gaming.local\",\n  \"password\": \"Sprint4Demo123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Login Sprint 4 seller",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sprint4-seller@gaming.local\",\n  \"password\": \"Sprint4Demo123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Login Sprint 4 admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sprint4-admin@gaming.local\",\n  \"password\": \"Sprint4Demo123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Current session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/auth/me"
+          }
+        },
+        {
+          "name": "Wallet balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/wallet"
+          }
+        },
+        {
+          "name": "Order-linked ledger",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/wallet/transactions?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Simulated top-up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amountTry\": \"100.00\",\n  \"idempotencyKey\": \"{{$guid}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/wallet/deposits/simulate"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 - Orders",
+      "item": [
+        {
+          "name": "Buy Now (Buyer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listingId\": \"{{listingId}}\",\n  \"expectedPrice\": \"{{listingPrice}}\",\n  \"idempotencyKey\": \"{{$guid}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/orders"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { const o = pm.response.json().data; for (const [k,v] of Object.entries({orderId:o.id, conversationId:o.conversation.id, sellerId:o.sellerId})) { pm.collectionVariables.set(k,v); if (pm.environment.name) pm.environment.set(k,v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/orders?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Order detail and timeline",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/orders/{{orderId}}"
+          }
+        },
+        {
+          "name": "Deliver (Seller)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deliveryNote\": \"The demo item has been delivered. Please verify it.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/orders/{{orderId}}/deliver"
+          }
+        },
+        {
+          "name": "Confirm receipt (Buyer)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/orders/{{orderId}}/confirm"
+          }
+        },
+        {
+          "name": "Cancel before delivery (alternate path)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/orders/{{orderId}}/cancel"
+          }
+        },
+        {
+          "name": "Review completed order (Buyer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Delivery worked well.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/orders/{{orderId}}/review"
+          }
+        },
+        {
+          "name": "Public seller profile and reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/sellers/{{sellerId}}?page=1&limit=20"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 - Messages",
+      "item": [
+        {
+          "name": "Message Seller before purchase (Buyer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listingId\": \"{{listingId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/conversations"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { const id = pm.response.json().data.id; pm.collectionVariables.set('conversationId', id); if (pm.environment.name) pm.environment.set('conversationId', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Inbox",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/conversations?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Conversation",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/conversations/{{conversationId}}"
+          }
+        },
+        {
+          "name": "Message history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/conversations/{{conversationId}}/messages?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Send text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Hello, can you help with the demo delivery?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/conversations/{{conversationId}}/messages"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 - Support",
+      "item": [
+        {
+          "name": "Pause order with linked ticket (Buyer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"subject\": \"Delivery issue\",\n  \"body\": \"Please check the demo delivery.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/support/tickets"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { const id = pm.response.json().data.id; pm.collectionVariables.set('ticketId', id); if (pm.environment.name) pm.environment.set('ticketId', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "General ticket (does not pause orders)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"General question\",\n  \"body\": \"How does the demonstration work?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/support/tickets"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { const id = pm.response.json().data.id; pm.collectionVariables.set('ticketId', id); if (pm.environment.name) pm.environment.set('ticketId', id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ticket list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/support/tickets?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Ticket detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/support/tickets/{{ticketId}}"
+          }
+        },
+        {
+          "name": "Ticket replies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/support/tickets/{{ticketId}}/messages?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Reply (owner or Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"We are reviewing your ticket.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/support/tickets/{{ticketId}}/messages"
+          }
+        },
+        {
+          "name": "Update status (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"InProgress\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/support/tickets/{{ticketId}}"
+          }
+        },
+        {
+          "name": "Resume paused order (Admin; alternate path)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"Resume\",\n  \"body\": \"Resume approved after checking the demo evidence.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/support/tickets/{{ticketId}}/resolve"
+          }
+        },
+        {
+          "name": "Complete paused order (Admin; alternate path)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"Complete\",\n  \"body\": \"Complete approved after checking the demo evidence.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/support/tickets/{{ticketId}}/resolve"
+          }
+        },
+        {
+          "name": "Cancel paused order (Admin; alternate path)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"Cancel\",\n  \"body\": \"Cancel approved after checking the demo evidence.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/support/tickets/{{ticketId}}/resolve"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 - Notifications",
+      "item": [
+        {
+          "name": "Notifications and unread count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/notifications?page=1&limit=20"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const items = pm.response.json().data?.items; if (items?.length) { pm.collectionVariables.set('notificationId', items[0].id); if (pm.environment.name) pm.environment.set('notificationId', items[0].id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark one read",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/notifications/{{notificationId}}/read"
+          }
+        },
+        {
+          "name": "Mark all mine read",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/notifications/read-all"
+          }
+        }
+      ]
+    }
+  ]
+}

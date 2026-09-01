@@ -26,17 +26,32 @@ export const authPlugin = fp(async (app) => {
     } catch {
       throw new AppError(401, "UNAUTHENTICATED", "Authentication is required.");
     }
+
+    const user = await prisma.user.findUnique({
+      where: { id: request.user.sub },
+      select: { status: true },
+    });
+    if (!user) {
+      throw new AppError(401, "SESSION_USER_NOT_FOUND", "The session is no longer valid.");
+    }
+    if (user.status === "SUSPENDED") {
+      throw new AppError(403, "ACCOUNT_SUSPENDED", "This account is suspended.");
+    }
   });
 
   app.decorate("authorize", (roles: UserRole[]): preHandlerHookHandler => {
     return async (request) => {
       const user = await prisma.user.findUnique({
         where: { id: request.user.sub },
-        select: { role: true },
+        select: { role: true, status: true },
       });
 
       if (!user) {
         throw new AppError(401, "SESSION_USER_NOT_FOUND", "The session is no longer valid.");
+      }
+
+      if (user.status === "SUSPENDED") {
+        throw new AppError(403, "ACCOUNT_SUSPENDED", "This account is suspended.");
       }
 
       if (!roles.includes(user.role)) {

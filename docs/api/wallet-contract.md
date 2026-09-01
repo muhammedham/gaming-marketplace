@@ -76,3 +76,13 @@ changes execute inside a database transaction with a wallet row lock.
 
 Legacy `POST /wallet/deposit` and `POST /wallet/withdraw` remain available for
 backward compatibility and use the same simulation/ledger implementation.
+
+## Sprint 4 order movements
+
+Transaction history additionally includes `HOLD`, `RELEASE`, `SALE`, `REFUND` and
+nullable `orderId`. HOLD moves buyer Available to Held; RELEASE removes buyer
+Held; SALE credits seller Available; REFUND returns buyer Held to Available.
+Completion produces two records in the same DB transaction. Deposit and withdrawal
+remain available after any order movement because chain validation handles all six
+transaction types. Each simulation now also writes an in-site wallet notification.
+See [Orders/Support contract](orders-support-contract.md) for ownership and state rules.

@@ -60,7 +60,7 @@ async function lockWallet(walletId: string, tx: Prisma.TransactionClient) {
   await tx.$queryRaw(Prisma.sql`SELECT id FROM wallets WHERE id = ${walletId}::uuid FOR UPDATE`);
 }
 
-async function assertLedgerConsistency(
+export async function assertLedgerConsistency(
   walletId: string,
   availableBalance: Prisma.Decimal,
   heldBalance: Prisma.Decimal,
@@ -79,10 +79,11 @@ async function assertLedgerConsistency(
     if (transaction.availableAfter.lessThan(decimalZero) || transaction.heldAfter.lessThan(decimalZero)) {
       throw new AppError(500, "LEDGER_INCONSISTENT", "The wallet ledger contains a negative balance.");
     }
-    const expectedAfter = transaction.type === WalletTransactionType.DEPOSIT
-      ? expectedAvailable.add(transaction.amount)
-      : expectedAvailable.sub(transaction.amount);
-    if (!transaction.availableAfter.equals(expectedAfter) || !transaction.heldAfter.equals(expectedHeld)) {
+    const availableDelta = ["DEPOSIT", "SALE", "REFUND"].includes(transaction.type) ? transaction.amount
+      : ["WITHDRAWAL", "HOLD"].includes(transaction.type) ? transaction.amount.negated() : decimalZero;
+    const heldDelta = transaction.type === "HOLD" ? transaction.amount
+      : ["RELEASE", "REFUND"].includes(transaction.type) ? transaction.amount.negated() : decimalZero;
+    if (!transaction.availableAfter.equals(expectedAvailable.add(availableDelta)) || !transaction.heldAfter.equals(expectedHeld.add(heldDelta))) {
       throw new AppError(500, "LEDGER_INCONSISTENT", "The wallet ledger contains an invalid balance change.");
     }
     expectedAvailable = transaction.availableAfter;
@@ -137,6 +138,7 @@ function transactionOutput(transaction: Prisma.WalletTransactionGetPayload<{
 }>) {
   return {
     id: transaction.id,
+    orderId: transaction.orderId,
     type: transaction.type,
     amount: transaction.amount.toFixed(2),
     fee: transaction.fee.toFixed(2),
@@ -253,6 +255,7 @@ export async function simulateDeposit(userId: string, input: DepositSimulation) 
       where: { id: current.wallet!.id },
       data: { availableBalance: availableAfter },
     });
+    await tx.notification.create({ data: { userId, type: "WALLET", title: "Simulated deposit completed", message: `${coinAmount.toFixed(2)} Coin added to your available balance.`, href: "/wallet" } });
     const created = await tx.walletTransaction.findUniqueOrThrow({
       where: { id: transaction.id },
       include: { deposit: true, withdrawal: true },
@@ -367,6 +370,7 @@ export async function simulateWithdrawal(userId: string, input: WithdrawalSimula
       where: { id: current.wallet!.id },
       data: { availableBalance: availableAfter },
     });
+    await tx.notification.create({ data: { userId, type: "WALLET", title: "Simulated withdrawal completed", message: `${amountCoin.toFixed(2)} Coin withdrawn. No real bank transfer was made.`, href: "/wallet" } });
     const created = await tx.walletTransaction.findUniqueOrThrow({
       where: { id: transaction.id },
       include: { deposit: true, withdrawal: true },

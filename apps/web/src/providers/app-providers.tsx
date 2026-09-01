@@ -12,6 +12,7 @@ function AuthBootstrap() {
     queryFn: getCurrentSession,
     retry: false,
     staleTime: 60_000,
+    refetchInterval: 10000,
   });
 
   useEffect(() => {

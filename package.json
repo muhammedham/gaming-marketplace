@@ -22,7 +22,12 @@
     "db:generate": "npm run db:generate --workspace @gaming-marketplace/api",
     "db:migrate": "npm run db:migrate --workspace @gaming-marketplace/api",
     "db:deploy": "npm run db:deploy --workspace @gaming-marketplace/api",
-    "db:seed": "npm run db:seed --workspace @gaming-marketplace/api"
+    "db:reset": "npm run db:reset --workspace @gaming-marketplace/api",
+    "db:seed": "npm run db:seed --workspace @gaming-marketplace/api",
+    "demo:sprint4": "npm run demo:sprint4 --workspace @gaming-marketplace/api",
+    "demo:final": "npm run db:seed && npm run demo:final --workspace @gaming-marketplace/api",
+    "setup:final": "npm run db:up && npm run db:deploy && npm run db:generate && npm run db:seed",
+    "verify": "npm run lint && npm run test && npm run build"
   },
   "engines": {
     "node": ">=20"

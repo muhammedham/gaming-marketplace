@@ -22,6 +22,9 @@ const envSchema = z.object({
   DEMO_SELLER_PASSWORD: z.string().min(8).default("Seller123!"),
   UPLOAD_DIR: z.string().min(1).default("./uploads"),
   MEDIA_PUBLIC_URL: z.url().default("http://127.0.0.1:4000/uploads"),
+  AUTO_CONFIRMATION_HOURS: z.coerce.number().positive().max(24 * 14).default(24),
+  ORDER_JOBS_ENABLED: z.enum(["true", "false"]).default("true"),
+  ORDER_JOB_RECONCILE_MS: z.coerce.number().int().min(1000).default(30000),
 });
 
 const result = envSchema.safeParse(process.env);

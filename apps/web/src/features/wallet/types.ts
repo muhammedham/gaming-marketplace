@@ -9,7 +9,8 @@ export type WalletSummary = {
 
 export type WalletTransaction = {
   id: string;
-  type: "DEPOSIT" | "WITHDRAWAL";
+  type: "DEPOSIT" | "WITHDRAWAL" | "HOLD" | "RELEASE" | "SALE" | "REFUND";
+  orderId?: string | null;
   amount: string;
   fee: string;
   description: string;

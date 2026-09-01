@@ -51,6 +51,10 @@ export async function authenticateUser(input: LoginBody) {
     throw new AppError(401, "INVALID_CREDENTIALS", "Email or password is incorrect.");
   }
 
+  if (user.status === "SUSPENDED") {
+    throw new AppError(403, "ACCOUNT_SUSPENDED", "This account is suspended.");
+  }
+
   return user;
 }
 
@@ -62,6 +66,10 @@ export async function getUserSession(userId: string) {
 
   if (!user) {
     throw new AppError(401, "SESSION_USER_NOT_FOUND", "The session is no longer valid.");
+  }
+
+  if (user.status === "SUSPENDED") {
+    throw new AppError(403, "ACCOUNT_SUSPENDED", "This account is suspended.");
   }
 
   return user;
@@ -78,6 +86,7 @@ export function toSessionPayload(user: UserWithWallet) {
       name: user.name,
       email: user.email,
       role: user.role as UserRole,
+      status: user.status,
     },
     wallet: {
       availableBalance: user.wallet.availableBalance.toFixed(2),

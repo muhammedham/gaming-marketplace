@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: marketplace
+      POSTGRES_PASSWORD: marketplace_dev
+      POSTGRES_DB: gaming_marketplace_clean
+    ports:
+      - "55433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketplace -d gaming_marketplace_clean"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - clean_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "56380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - clean_redis_data:/data
+
+volumes:
+  clean_postgres_data:
+  clean_redis_data:

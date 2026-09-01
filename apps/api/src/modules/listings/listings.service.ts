@@ -118,9 +118,15 @@ async function assertTaxonomy(
   gameId: string | null,
 ) {
   const [category, game] = await Promise.all([
-    client.category.findUnique({ where: { id: categoryId }, select: { id: true } }),
+    client.category.findFirst({
+      where: { id: categoryId, status: "ACTIVE" },
+      select: { id: true },
+    }),
     gameId
-      ? client.game.findUnique({ where: { id: gameId }, select: { id: true } })
+      ? client.game.findFirst({
+          where: { id: gameId, status: "ACTIVE" },
+          select: { id: true },
+        })
       : Promise.resolve(null),
   ]);
 
@@ -175,6 +181,8 @@ export async function listListings(query: ListingQuery) {
   const search = query.q?.trim();
   const where: Prisma.ListingWhereInput = {
     status: ListingStatus.ACTIVE,
+    category: { status: "ACTIVE" },
+    AND: [{ OR: [{ gameId: null }, { game: { status: "ACTIVE" } }] }],
     media: { some: { role: ListingMediaRole.COVER } },
     ...(search
       ? {
@@ -226,7 +234,12 @@ export async function getListing(listingId: string, viewerId?: string) {
     include: listingInclude,
   });
 
-  if (!listing || (listing.status === ListingStatus.INACTIVE && listing.sellerId !== viewerId)) {
+  const publiclyUnavailable =
+    listing &&
+    (listing.status === ListingStatus.INACTIVE ||
+      listing.category.status === "INACTIVE" ||
+      listing.game?.status === "INACTIVE");
+  if (!listing || (publiclyUnavailable && listing.sellerId !== viewerId)) {
     throw new AppError(404, "LISTING_NOT_FOUND", "Listing not found.");
   }
 

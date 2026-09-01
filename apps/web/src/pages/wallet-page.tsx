@@ -16,6 +16,7 @@ import {
 } from "../features/wallet/wallet-api";
 import type { WithdrawalPreview } from "../features/wallet/types";
 import { ApiError } from "../lib/api-client";
+import { Link } from "react-router-dom";
 
 function newIdempotencyKey(prefix: string) {
   const id = typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -35,8 +36,8 @@ function dateLabel(value: string) {
 
 export function WalletPage() {
   const queryClient = useQueryClient();
-  const walletQuery = useQuery({ queryKey: walletKeys.summary(), queryFn: getWallet });
-  const transactionsQuery = useQuery({ queryKey: walletKeys.transactions(), queryFn: listWalletTransactions });
+  const walletQuery = useQuery({ queryKey: walletKeys.summary(), queryFn: getWallet, refetchInterval: 5000 });
+  const transactionsQuery = useQuery({ queryKey: walletKeys.transactions(), queryFn: listWalletTransactions, refetchInterval: 5000 });
   const depositsQuery = useQuery({ queryKey: walletKeys.deposits(), queryFn: listDeposits });
   const withdrawalsQuery = useQuery({ queryKey: walletKeys.withdrawals(), queryFn: listWithdrawals });
   const [depositAmount, setDepositAmount] = useState("");
@@ -169,7 +170,7 @@ export function WalletPage() {
 
       <section className="rounded-lg border border-gray-200 bg-white" aria-labelledby="wallet-history">
         <div className="flex items-center gap-2 border-b border-gray-200 p-5"><WalletCards className="size-5 text-emerald-700" aria-hidden="true" /><h2 id="wallet-history" className="text-lg font-semibold">Transaction history</h2></div>
-        {transactionsQuery.isPending ? <div className="p-5 text-sm text-gray-500">Loading transactions…</div> : transactions.length === 0 ? <div className="p-5 text-sm text-gray-500">No wallet transactions yet.</div> : <div className="divide-y divide-gray-100">{transactions.map((transaction) => <div className="flex flex-wrap items-center justify-between gap-3 p-5" key={transaction.id}><div><p className="font-medium">{transaction.description || (transaction.type === "DEPOSIT" ? "Deposit" : "Withdrawal")}</p><p className="mt-1 text-xs text-gray-500">{dateLabel(transaction.createdAt)}</p></div><div className="text-right"><p className={transaction.type === "DEPOSIT" ? "font-semibold text-emerald-700" : "font-semibold text-gray-900"}>{transaction.type === "DEPOSIT" ? "+" : "−"}{transaction.amount} Coin</p><p className="mt-1 text-xs text-gray-500">Available after: {transaction.availableAfter} Coin</p></div></div>)}</div>}
+        {transactionsQuery.isPending ? <div className="p-5 text-sm text-gray-500">Loading transactions…</div> : transactionsQuery.isError ? <p className="p-5 text-sm text-red-700" role="alert">{transactionsQuery.error.message}</p> : transactions.length === 0 ? <div className="p-5 text-sm text-gray-500">No wallet transactions yet.</div> : <div className="divide-y divide-gray-100">{transactions.map((transaction) => <div className="flex flex-wrap items-center justify-between gap-3 p-5" key={transaction.id}><div><p className="font-medium">{transaction.description || transaction.type}</p><p className="mt-1 text-xs text-gray-500">{dateLabel(transaction.createdAt)} · {transaction.type}</p>{transaction.orderId && <Link className="mt-1 block text-xs text-emerald-700 underline" to={`/orders/${transaction.orderId}`}>View order</Link>}</div><div className="text-right"><p className="font-semibold">{["DEPOSIT", "SALE", "REFUND"].includes(transaction.type) ? "+" : transaction.type === "RELEASE" ? "" : "−"}{transaction.amount} Coin{transaction.type === "RELEASE" ? " released from Held" : ""}</p><p className="mt-1 text-xs text-gray-500">Available: {transaction.availableAfter} · Held: {transaction.heldAfter} Coin</p></div></div>)}</div>}
       </section>
 
       <div className="grid gap-6 md:grid-cols-2">

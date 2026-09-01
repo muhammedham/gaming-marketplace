@@ -1,6 +1,7 @@
-import { Gamepad2, LayoutGrid, LogOut, Store, UserRound, WalletCards } from "lucide-react";
+import { Gamepad2, LayoutGrid, LogOut, ShieldCheck, Store, UserRound, WalletCards } from "lucide-react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { listNotifications } from "../features/orders/api";
 
 import { Button } from "../components/ui/button";
 import { logout } from "../features/auth/auth-api";
@@ -21,11 +22,12 @@ export function AppShell() {
   const session = useAuthStore((state) => state.session);
   const status = useAuthStore((state) => state.status);
   const setUnauthenticated = useAuthStore((state) => state.setUnauthenticated);
+  const notifications = useQuery({ queryKey: ["market", session?.user.id, "notifications", 1], queryFn: () => listNotifications(1), enabled: !!session, refetchInterval: 5000 });
   const logoutMutation = useMutation({
     mutationFn: logout,
     onSettled: () => {
       setUnauthenticated();
-      queryClient.removeQueries({ queryKey: ["auth"] });
+      queryClient.clear();
       navigate("/login");
     },
   });
@@ -60,6 +62,12 @@ export function AppShell() {
               <NavLink className={navLinkClass} to="/sell/listings">
                 <Store className="size-4" aria-hidden="true" />
                 <span className="hidden md:inline">Sell</span>
+              </NavLink>
+            ) : null}
+            {session?.user.role === "ADMIN" ? (
+              <NavLink className={navLinkClass} to="/admin">
+                <ShieldCheck className="size-4" aria-hidden="true" />
+                <span className="hidden md:inline">Admin</span>
               </NavLink>
             ) : null}
           </nav>
@@ -100,6 +108,13 @@ export function AppShell() {
           </div>
         </div>
       </header>
+
+      {session && <nav className="border-b border-gray-200 bg-white" aria-label="Account navigation"><div className="mx-auto flex max-w-7xl gap-5 overflow-x-auto px-4 sm:px-6 lg:px-8">
+        <NavLink className={navLinkClass} to="/orders">{session.user.role === "SELLER" ? "Sales orders" : session.user.role === "ADMIN" ? "Orders" : "Purchases"}</NavLink>
+        <NavLink className={navLinkClass} to="/messages">Messages</NavLink>
+        <NavLink className={navLinkClass} to="/support">{session.user.role === "ADMIN" ? "Support desk" : "Support"}</NavLink>
+        <NavLink className={navLinkClass} to="/notifications">Notifications{(notifications.data?.unreadCount ?? 0) > 0 && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-800">{notifications.data!.unreadCount}</span>}</NavLink>
+      </div></nav>}
 
       <main>
         <Outlet />

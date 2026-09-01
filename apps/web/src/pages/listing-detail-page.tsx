@@ -9,6 +9,7 @@ import { isListingOwner } from "../features/listings/mock-listings-api";
 import { MarketplaceState } from "../features/listings/marketplace-state";
 import { listingKeys, type ListingActor } from "../features/listings/types";
 import { useAuthStore } from "../store/auth-store";
+import { PurchasePanel } from "../features/orders/purchase-panel";
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", { year: "numeric", month: "long", day: "numeric" }).format(new Date(value));
@@ -176,6 +177,7 @@ export function ListingDetailPage() {
           ) : null}
           {deactivateMutation.isError ? <p className="mt-3 text-sm text-red-700">{deactivateMutation.error.message}</p> : null}
           {activateMutation.isError ? <p className="mt-3 text-sm text-red-700">{activateMutation.error.message}</p> : null}
+          <PurchasePanel key={listing.id} listingId={listing.id} sellerId={listing.seller.id} price={listing.price} active={listing.status === "ACTIVE"} />
         </section>
       </div>
     </div>

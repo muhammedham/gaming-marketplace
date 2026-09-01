@@ -13,6 +13,16 @@ enum UserRole {
   ADMIN
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum CatalogStatus {
+  ACTIVE
+  INACTIVE
+}
+
 enum ListingStatus {
   ACTIVE
   INACTIVE
@@ -27,6 +37,28 @@ enum ListingMediaRole {
 enum WalletTransactionType {
   DEPOSIT
   WITHDRAWAL
+  HOLD
+  RELEASE
+  SALE
+  REFUND
+}
+
+enum OrderStatus {
+  Created
+  Paid
+  WaitingDelivery
+  Delivered
+  WaitingConfirmation
+  Completed
+  SupportPaused
+  Cancelled
+}
+
+enum TicketStatus {
+  Open
+  InProgress
+  Answered
+  Closed
 }
 
 enum SimulationStatus {
@@ -34,15 +66,27 @@ enum SimulationStatus {
 }
 
 model User {
-  id           String    @id @default(uuid()) @db.Uuid
-  name         String    @db.VarChar(100)
-  email        String    @unique @db.VarChar(255)
-  passwordHash String    @map("password_hash") @db.VarChar(255)
-  role         UserRole  @default(BUYER)
-  wallet       Wallet?
-  listings     Listing[]
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id              String          @id @default(uuid()) @db.Uuid
+  name            String          @db.VarChar(100)
+  email           String          @unique @db.VarChar(255)
+  passwordHash    String          @map("password_hash") @db.VarChar(255)
+  role            UserRole        @default(BUYER)
+  status          UserStatus      @default(ACTIVE)
+  wallet          Wallet?
+  listings        Listing[]
+  purchases       Order[]         @relation("OrderBuyer")
+  sales           Order[]         @relation("OrderSeller")
+  orderEvents     OrderEvent[]
+  buyerChats      Conversation[]  @relation("ChatBuyer")
+  sellerChats     Conversation[]  @relation("ChatSeller")
+  messages        Message[]
+  tickets         SupportTicket[]
+  reviewsGiven    Review[]        @relation("ReviewBuyer")
+  reviewsReceived Review[]        @relation("ReviewSeller")
+  notifications   Notification[]
+  adminAuditLogs  AdminAuditLog[] @relation("AdminAuditActor")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
 
   @@map("users")
 }
@@ -63,11 +107,12 @@ model Wallet {
 }
 
 model SystemSettings {
-  id                Int      @id @default(1)
-  coinTryRate       Decimal  @map("coin_try_rate") @db.Decimal(18, 6)
-  withdrawalFeeRate Decimal  @default(0) @map("withdrawal_fee_rate") @db.Decimal(9, 6)
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
+  id                    Int      @id @default(1)
+  coinTryRate           Decimal  @map("coin_try_rate") @db.Decimal(18, 6)
+  withdrawalFeeRate     Decimal  @default(0) @map("withdrawal_fee_rate") @db.Decimal(9, 6)
+  autoConfirmationHours Decimal  @default(24) @map("auto_confirmation_hours") @db.Decimal(9, 4)
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
 
   @@map("system_settings")
 }
@@ -86,11 +131,15 @@ model WalletTransaction {
   description     String                @default("") @db.VarChar(255)
   ledgerSequence  Int                   @unique @default(autoincrement()) @map("ledger_sequence")
   wallet          Wallet                @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  orderId         String?               @map("order_id") @db.Uuid
+  order           Order?                @relation(fields: [orderId], references: [id], onDelete: Restrict)
   deposit         Deposit?
   withdrawal      Withdrawal?
   createdAt       DateTime              @default(now()) @map("created_at")
 
+  @@unique([orderId, type])
   @@index([walletId, ledgerSequence])
+  @@index([orderId])
   @@map("wallet_transactions")
 }
 
@@ -133,43 +182,47 @@ model Withdrawal {
 }
 
 model Category {
-  id          String    @id @default(uuid()) @db.Uuid
-  name        String    @unique @db.VarChar(100)
-  slug        String    @unique @db.VarChar(100)
-  description String    @db.Text
+  id          String        @id @default(uuid()) @db.Uuid
+  name        String        @unique @db.VarChar(100)
+  slug        String        @unique @db.VarChar(100)
+  description String        @db.Text
+  status      CatalogStatus @default(ACTIVE)
   listings    Listing[]
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
 
   @@map("categories")
 }
 
 model Game {
-  id        String    @id @default(uuid()) @db.Uuid
-  name      String    @unique @db.VarChar(100)
-  slug      String    @unique @db.VarChar(100)
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String        @unique @db.VarChar(100)
+  slug      String        @unique @db.VarChar(100)
+  status    CatalogStatus @default(ACTIVE)
   listings  Listing[]
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
 
   @@map("games")
 }
 
 model Listing {
-  id          String         @id @default(uuid()) @db.Uuid
-  sellerId    String         @map("seller_id") @db.Uuid
-  categoryId  String         @map("category_id") @db.Uuid
-  gameId      String?        @map("game_id") @db.Uuid
-  title       String         @db.VarChar(160)
-  description String         @db.Text
-  price       Decimal        @db.Decimal(18, 2)
-  status      ListingStatus  @default(ACTIVE)
-  seller      User           @relation(fields: [sellerId], references: [id], onDelete: Restrict)
-  category    Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  game        Game?          @relation(fields: [gameId], references: [id], onDelete: SetNull)
-  media       ListingMedia[]
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
+  id            String         @id @default(uuid()) @db.Uuid
+  sellerId      String         @map("seller_id") @db.Uuid
+  categoryId    String         @map("category_id") @db.Uuid
+  gameId        String?        @map("game_id") @db.Uuid
+  title         String         @db.VarChar(160)
+  description   String         @db.Text
+  price         Decimal        @db.Decimal(18, 2)
+  status        ListingStatus  @default(ACTIVE)
+  seller        User           @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  category      Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  game          Game?          @relation(fields: [gameId], references: [id], onDelete: SetNull)
+  media         ListingMedia[]
+  orders        Order[]
+  conversations Conversation[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
 
   @@index([status, createdAt])
   @@index([categoryId, status, createdAt])
@@ -192,4 +245,153 @@ model ListingMedia {
 
   @@index([listingId, role, sortOrder])
   @@map("listing_media")
+}
+
+model Order {
+  id                String              @id @default(uuid()) @db.Uuid
+  buyerId           String              @map("buyer_id") @db.Uuid
+  sellerId          String              @map("seller_id") @db.Uuid
+  listingId         String              @map("listing_id") @db.Uuid
+  listingTitle      String              @map("listing_title") @db.VarChar(160)
+  price             Decimal             @db.Decimal(18, 2)
+  status            OrderStatus         @default(Created)
+  idempotencyKey    String              @map("idempotency_key") @db.VarChar(100)
+  deliveryNote      String?             @map("delivery_note") @db.VarChar(2000)
+  deliveredAt       DateTime?           @map("delivered_at")
+  autoConfirmAt     DateTime?           @map("auto_confirm_at")
+  confirmedAt       DateTime?           @map("confirmed_at")
+  completedAt       DateTime?           @map("completed_at")
+  cancelledAt       DateTime?           @map("cancelled_at")
+  pausedFrom        OrderStatus?        @map("paused_from")
+  pausedRemainingMs Int?                @map("paused_remaining_ms")
+  buyer             User                @relation("OrderBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  seller            User                @relation("OrderSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  listing           Listing             @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  events            OrderEvent[]
+  transactions      WalletTransaction[]
+  conversation      Conversation?
+  tickets           SupportTicket[]
+  review            Review?
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+
+  @@unique([buyerId, idempotencyKey])
+  @@index([buyerId, status, createdAt])
+  @@index([sellerId, status, createdAt])
+  @@index([status, autoConfirmAt])
+  @@map("orders")
+}
+
+model OrderEvent {
+  id        Int         @id @default(autoincrement())
+  orderId   String      @map("order_id") @db.Uuid
+  status    OrderStatus
+  actorId   String?     @map("actor_id") @db.Uuid
+  actorRole String      @map("actor_role") @db.VarChar(10)
+  note      String      @db.VarChar(2000)
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actor     User?       @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  @@index([orderId, id])
+  @@map("order_events")
+}
+
+model Conversation {
+  id         String    @id @default(uuid()) @db.Uuid
+  contextKey String    @unique @map("context_key") @db.VarChar(100)
+  buyerId    String    @map("buyer_id") @db.Uuid
+  sellerId   String    @map("seller_id") @db.Uuid
+  listingId  String    @map("listing_id") @db.Uuid
+  orderId    String?   @unique @map("order_id") @db.Uuid
+  buyer      User      @relation("ChatBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  seller     User      @relation("ChatSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  listing    Listing   @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  order      Order?    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  messages   Message[]
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@index([buyerId, updatedAt])
+  @@index([sellerId, updatedAt])
+  @@map("conversations")
+}
+
+model SupportTicket {
+  id        String       @id @default(uuid()) @db.Uuid
+  userId    String       @map("user_id") @db.Uuid
+  orderId   String?      @map("order_id") @db.Uuid
+  subject   String       @db.VarChar(160)
+  status    TicketStatus @default(Open)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  order     Order?       @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  messages  Message[]
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  @@index([userId, status, createdAt])
+  @@index([orderId, status])
+  @@map("support_tickets")
+}
+
+model Message {
+  id             String         @id @default(uuid()) @db.Uuid
+  senderId       String         @map("sender_id") @db.Uuid
+  conversationId String?        @map("conversation_id") @db.Uuid
+  ticketId       String?        @map("ticket_id") @db.Uuid
+  body           String         @db.VarChar(2000)
+  sender         User           @relation(fields: [senderId], references: [id], onDelete: Restrict)
+  conversation   Conversation?  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  ticket         SupportTicket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now()) @map("created_at")
+
+  @@index([conversationId, createdAt, id])
+  @@index([ticketId, createdAt, id])
+  @@map("messages")
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String   @unique @map("order_id") @db.Uuid
+  buyerId   String   @map("buyer_id") @db.Uuid
+  sellerId  String   @map("seller_id") @db.Uuid
+  rating    Int
+  comment   String   @default("") @db.VarChar(1000)
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  buyer     User     @relation("ReviewBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  seller    User     @relation("ReviewSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([sellerId, createdAt])
+  @@map("reviews")
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  type      String   @db.VarChar(40)
+  title     String   @db.VarChar(160)
+  message   String   @db.VarChar(500)
+  href      String   @db.VarChar(200)
+  isRead    Boolean  @default(false) @map("is_read")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, isRead, createdAt])
+  @@map("notifications")
+}
+
+model AdminAuditLog {
+  id         Int      @id @default(autoincrement())
+  adminId    String   @map("admin_id") @db.Uuid
+  action     String   @db.VarChar(80)
+  entityType String   @map("entity_type") @db.VarChar(40)
+  entityId   String   @map("entity_id") @db.VarChar(100)
+  details    Json     @default("{}")
+  admin      User     @relation("AdminAuditActor", fields: [adminId], references: [id], onDelete: Restrict)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([adminId, createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@map("admin_audit_logs")
 }

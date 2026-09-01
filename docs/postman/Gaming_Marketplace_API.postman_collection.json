@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Gaming Marketplace API",
-    "description": "Sprint 1 Auth, Sprint 2 Catalog/Listings and Sprint 3 Wallet simulation endpoints are implemented. Orders and Support remain future-sprint contracts. Login cookies are stored automatically by Postman's cookie jar.",
+    "name": "Gaming Marketplace - Final MVP API",
+    "description": "Final Sprint 5 collection covering Auth, Listings, Wallet simulations, Orders, Support and the complete Admin API. Import Gaming_Marketplace_Sprint_4.postman_collection.json for extended Chat/Reviews/Notifications alternatives. Login cookies are stored automatically by Postman's cookie jar.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -285,14 +285,14 @@
       ]
     },
     {
-      "name": "Orders - Future Sprint",
+      "name": "Orders - Sprint 4 (full examples in separate collection)",
       "item": [
         {
           "name": "Create Order",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"listingId\": \"{{listingId}}\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"listingId\": \"{{listingId}}\",\n  \"expectedPrice\": \"{{listingPrice}}\",\n  \"idempotencyKey\": \"{{$guid}}\"\n}" },
             "url": "{{baseUrl}}/orders"
           }
         },
@@ -300,6 +300,8 @@
           "name": "Deliver Order",
           "request": {
             "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"deliveryNote\": \"The demo product has been delivered.\"\n}" },
             "url": "{{baseUrl}}/orders/{{orderId}}/deliver"
           }
         },
@@ -313,7 +315,7 @@
       ]
     },
     {
-      "name": "Support - Future Sprint",
+      "name": "Support - Sprint 4 (full examples in separate collection)",
       "item": [
         {
           "name": "Create Ticket",
@@ -322,7 +324,7 @@
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"subject\": \"Order problem\",\n  \"message\": \"Describe the problem\"\n}"
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"subject\": \"Order problem\",\n  \"body\": \"Describe the problem\"\n}"
             },
             "url": "{{baseUrl}}/support/tickets"
           }
@@ -330,21 +332,134 @@
       ]
     },
     {
-      "name": "Admin",
+      "name": "Admin - Sprint 5",
       "item": [
         {
-          "name": "Admin Session - Sprint 1 Implemented",
+          "name": "Admin Session",
           "request": {
             "method": "GET",
             "url": "{{baseUrl}}/admin/session",
-            "description": "Sprint 1 role-boundary proof. Login as Admin first. Buyer and Seller receive 403."
+            "description": "Login as Admin first. Buyer and Seller receive 403 for every route in this folder."
           }
         },
         {
-          "name": "List Users - Future Sprint",
+          "name": "Dashboard + Wallet Ledger",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/admin/users?page=1&limit=20"
+            "url": "{{baseUrl}}/admin/dashboard"
+          }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/users?page=1&limit=20&q=&status=ACTIVE"
+          }
+        },
+        {
+          "name": "Update User Role or Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ACTIVE\"\n}" },
+            "url": "{{baseUrl}}/admin/users/{{targetUserId}}",
+            "description": "The API prevents self-suspension and removal of the final active Admin."
+          }
+        },
+        {
+          "name": "Create Category",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) pm.environment.set('adminCategoryId', pm.response.json().data.id);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Final Category {{$timestamp}}\",\n  \"description\": \"Created from the final Admin collection.\"\n}" },
+            "url": "{{baseUrl}}/admin/categories"
+          }
+        },
+        {
+          "name": "List Categories",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/categories?page=1&limit=20" }
+        },
+        {
+          "name": "Deactivate Category",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"INACTIVE\"\n}" },
+            "url": "{{baseUrl}}/admin/categories/{{adminCategoryId}}"
+          }
+        },
+        {
+          "name": "Create Game",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) pm.environment.set('adminGameId', pm.response.json().data.id);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Postman Final Game {{$timestamp}}\"\n}" },
+            "url": "{{baseUrl}}/admin/games"
+          }
+        },
+        {
+          "name": "List Games",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/games?page=1&limit=20" }
+        },
+        {
+          "name": "List Listings",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/listings?page=1&limit=20&q=&status=" }
+        },
+        {
+          "name": "Update Listing Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ACTIVE\"\n}" },
+            "url": "{{baseUrl}}/admin/listings/{{listingId}}"
+          }
+        },
+        {
+          "name": "List Orders",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/orders?page=1&limit=20&status=" }
+        },
+        {
+          "name": "Admin Order Action",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"action\": \"Complete\",\n  \"note\": \"Delivery evidence verified in final API demo.\"\n}" },
+            "url": "{{baseUrl}}/admin/orders/{{orderId}}/action",
+            "description": "Complete is allowed from WaitingConfirmation; Cancel is allowed from WaitingDelivery/WaitingConfirmation. SupportPaused is resolved from its ticket."
+          }
+        },
+        {
+          "name": "List Simulated Withdrawals",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/withdrawals?page=1&limit=20",
+            "description": "Simulation records only. No real payment or bank transfer."
+          }
+        },
+        {
+          "name": "List Support",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/support?page=1&limit=20&status=Open" }
+        },
+        {
+          "name": "Get Settings",
+          "request": { "method": "GET", "url": "{{baseUrl}}/admin/settings" }
+        },
+        {
+          "name": "Update Settings",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"coinTryRate\": \"1.000000\",\n  \"withdrawalFeeRate\": \"0.000000\",\n  \"autoConfirmationHours\": \"24.0000\"\n}" },
+            "url": "{{baseUrl}}/admin/settings"
+          }
+        },
+        {
+          "name": "Audit Log",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/admin/audit?page=1&limit=20"
           }
         }
       ]

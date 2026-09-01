@@ -56,7 +56,7 @@ function ListingEditor({ actor, existing }: { actor: ListingActor; existing?: Li
       queryClient.setQueryData(listingKeys.detail(listing.id), listing);
       await queryClient.invalidateQueries({ queryKey: listingKeys.all });
       await queryClient.invalidateQueries({ queryKey: listingKeys.detail(listing.id) });
-      navigate(`/listings/${listing.id}/edit`);
+      navigate(`/sell/listings/${listing.id}/edit`);
     },
   });
 

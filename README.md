@@ -45,7 +45,15 @@ Copy-Item .env.example .env
 npm install
 npm run db:up
 npm run db:deploy
+npm run db:generate
 npm run db:seed
+npm run dev
+```
+
+Final setup can be shortened after `npm install`:
+
+```powershell
+npm run setup:final
 npm run dev
 ```
 
@@ -136,6 +144,95 @@ Contract](docs/api/listings-contract.md) dosyasındadır.
 Ayrıntılı request ve response sözleşmesi [Wallet API Contract](docs/api/wallet-contract.md)
 dosyasındadır.
 
+## Sprint 4 - Order, 24 saat ve iletişim
+
+Muhammed ve Zeyad kapsamları birlikte entegre edildi:
+
+- Product Details: Buy Now, bakiye yetersizliği, Message Seller ve gerçek seller rating.
+- Purchases/Sales Orders: status timeline, teslimat notu, onay, iptal/iade, sunucu
+  zamanına göre sayaç ve order chat.
+- Coin purchase sırasında Buyer Available'dan Held'e geçer. Onayda yalnız bir kez
+  Seller Available'a aktarılır; iptalde Buyer Available'a geri döner.
+- API ile birlikte çalışan BullMQ worker, varsayılan 24 saatte uygun siparişi
+  tamamlar. DB taraması yeniden başlatma/Redis hatasında eksik işleri kurtarır.
+- Support, ticket detail ve Admin support desk: cevap, durum, duraklatma,
+  kalan süreyle devam, tamamlama veya iade. Genel Admin paneli Sprint 5 kapsamındadır.
+- Text-only Messages, site içi read/unread Notifications, tek Completed-order
+  review ve public Seller Profile. Mesaj/order/notification polling: 5 saniye.
+- Wallet geçmişi HOLD/RELEASE/SALE/REFUND hareketlerini ve order bağlantısını gösterir.
+
+Yeni migration'ları mevcut verileri silmeden uygulayın:
+
+```powershell
+npm install
+npm run db:up
+npm run db:deploy
+npm run db:generate
+npm run dev
+```
+
+Windows'ta Prisma generate `EPERM` verirse API geliştirme sunucusunu durdurun,
+generate çalıştırın, sonra `npm run dev` ile yeniden başlatın. Veritabanını resetlemeyin.
+
+`AUTO_CONFIRMATION_HOURS=24`, `ORDER_JOBS_ENABLED=true`,
+`ORDER_JOB_RECONCILE_MS=30000` varsayılandır. Yerel hızlı demo için hours `0.01`
+(36 saniye) olabilir; API yeniden başlatılmalı, önceki deadline'lar değiştirilmez.
+
+İsteğe bağlı ayrı ve tekrar çalıştırılabilir demo verisi:
+
+```powershell
+npm run demo:sprint4
+```
+
+Bu komut `sprint4-buyer@gaming.local`, `sprint4-seller@gaming.local` ve
+`sprint4-admin@gaming.local` hesaplarını (`Sprint4Demo123!`), tek 40 Coin demo ilanını
+ve Buyer için tek seferlik 1000 TRY simulated deposit'i oluşturur. Mevcut kullanıcı,
+ürün veya bakiyeyi resetlemez. Yalnız yerel geliştirme içindir.
+
+Ayrıntılar:
+
+- [Orders/Support API contract](docs/api/orders-support-contract.md): tüm endpoint,
+  durum, para, yetki, polling ve worker sözleşmesi.
+- [Sprint 4 teslim ve demo](docs/sprint-4/README.md): kişi bazlı kapsam, kabul
+  matrisi, senaryolar, test kanıtı, sınırlamalar ve GitHub issue eşlemesi.
+- [Sprint 4 Postman collection](docs/postman/Gaming_Marketplace_Sprint_4.postman_collection.json):
+  auth, purchase, delivery, confirmation, messages, support, review, notifications örnekleri.
+
+## Sprint 5 - Admin, entegrasyon ve final
+
+- `/admin` Dashboard; kullanıcı, aktif katalog/ilan, order/support, Available/Held ve
+  temsili withdrawal özetlerini gösterir. Son Wallet ledger ve Admin audit kayıtları
+  aynı ekrandadır.
+- `/admin/users`, `/categories`, `/games`, `/listings`, `/orders`, `/withdrawals`,
+  `/support` ve `/settings` tarama odaklı, filtreli ve rol korumalı ekranlardır.
+- Admin değişiklikleri veritabanı transaction'ı içinde `AdminAuditLog` kaydı üretir.
+  Son aktif Admin kaldırılamaz; Admin kendi rolünü değiştiremez veya kendini askıya alamaz.
+- Kategori/oyun pasifleştirmesi bağlı aktif ilanları atomik olarak gizler. Pasif
+  taxonomy ile ilan yeniden yayınlanamaz.
+- System Settings, Coin/TRY rate, withdrawal fee ve yeni teslimatlar için otomatik
+  onay süresini yönetir. Eski deadline ve ledger kayıtları değiştirilmez.
+- Withdrawal Admin ekranı dahil her yerde **Simulation only** olarak etiketlidir.
+
+Final ve tekrar çalıştırılabilir kabul verisini hazırlamak için:
+
+```powershell
+npm run demo:final
+```
+
+Komut seed'i tekrar çalıştırır; bir Completed + review order, bir SupportPaused
+order ve temsili withdrawal kaydı bırakır, ardından Admin kanıt özetini terminale
+yazar. Gerçek ödeme veya banka transferi yapılmaz.
+
+Sprint 5 teslim/demoda kişi bazlı kapsam ve kanıtlar
+[Sprint 5 final delivery](docs/sprint-5/README.md), Admin sözleşmesi
+[Admin API contract](docs/api/admin-contract.md), rapor uyumu
+[Final report comparison](docs/final/report-comparison.md) ve kalan maddeler
+[Known medium items](docs/final/known-medium.md) dosyalarındadır.
+
+API testleri `gaming_marketplace_test` adlı ayrı PostgreSQL schema'sında migration
+ve seed çalıştırır. Gerçek kullanıcıların bakiyelerine ve bildirimlerine dokunmaz.
+Redis worker testi benzersiz test kuyruğu kullanır ve sadece fixture order'larını tarar.
+
 ## Veritabanı Komutları
 
 ```powershell
@@ -145,6 +242,7 @@ npm run db:seed      # Demo kullanıcılarını oluşturur/günceller
 npm run db:migrate   # Şema geliştirirken yeni migration üretir
 npm run db:generate  # Prisma Client'ı yeniden üretir
 npm run db:down      # Docker servislerini durdurur
+npm run db:reset     # DESTRUCTIVE: yapılandırılmış DB şemasını siler, migrate + seed yapar
 ```
 
 ## Kalite Kontrolleri
@@ -153,6 +251,7 @@ npm run db:down      # Docker servislerini durdurur
 npm run lint
 npm run test
 npm run build
+npm run verify       # lint + tüm testler + tüm build'ler
 ```
 
 Postman collection ve local environment dosyaları `docs/postman` altındadır.
