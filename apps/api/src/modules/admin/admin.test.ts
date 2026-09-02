@@ -51,6 +51,7 @@ describe("Sprint 5 Admin API", () => {
     await prisma.walletTransaction.deleteMany({ where: { orderId: { in: orderIds } } });
     await prisma.order.deleteMany({ where: { id: { in: orderIds } } });
     await prisma.listing.deleteMany({ where: { sellerId: { in: ids } } });
+    await prisma.gameInferenceIntegration.deleteMany({ where: { game: { slug: "valorant" } } });
     await prisma.category.deleteMany({ where: { slug: { startsWith: "sprint5-test" } } });
     await prisma.game.deleteMany({ where: { slug: { startsWith: "sprint5-test" } } });
     await prisma.user.deleteMany({ where: { id: { in: ids } } });
@@ -162,6 +163,46 @@ describe("Sprint 5 Admin API", () => {
     expect(completed.json().data.status).toBe("Completed");
     expect((await request("POST", `/admin/orders/${order.id}/action`, admin, { action: "Complete", note: "Duplicate attempt." })).statusCode).toBe(409);
     expect(await prisma.walletTransaction.count({ where: { orderId: order.id, type: "SALE" } })).toBe(1);
+  });
+
+  it("stores the external API URL and keeps an optional API key encrypted", async () => {
+    const valorant = await prisma.game.findUniqueOrThrow({ where: { slug: "valorant" } });
+    const saved = await request("PATCH", `/admin/integrations/games/${valorant.id}`, admin, {
+      baseUrl: "https://inventory-api.example.com/api/v1/external/inference",
+      enabled: true,
+    });
+    expect(saved.statusCode).toBe(200);
+    expect(saved.json().data).toMatchObject({
+      gameSlug: "valorant",
+      provider: "EXTERNAL_API",
+      baseUrl: "https://inventory-api.example.com",
+      apiKeyConfigured: false,
+      enabled: true,
+    });
+
+    const secured = await request("PATCH", `/admin/integrations/games/${valorant.id}`, admin, {
+      baseUrl: "https://inventory-api.example.com",
+      apiKey: "runpod-secret-test-key",
+      enabled: true,
+    });
+    expect(secured.statusCode).toBe(200);
+    expect(secured.json().data).toMatchObject({
+      gameSlug: "valorant",
+      baseUrl: "https://inventory-api.example.com",
+      apiKeyConfigured: true,
+      apiKeyMasked: "••••-key",
+      enabled: true,
+    });
+    expect(JSON.stringify(secured.json())).not.toContain("runpod-secret-test-key");
+
+    const stored = await prisma.gameInferenceIntegration.findUniqueOrThrow({ where: { gameId: valorant.id } });
+    expect(stored.apiKeyEncrypted).not.toContain("runpod-secret-test-key");
+    expect(stored.apiKeyEncrypted).toMatch(/^v1\./);
+
+    const listed = await request("GET", "/admin/integrations/games", admin);
+    expect(listed.statusCode).toBe(200);
+    expect(JSON.stringify(listed.json())).not.toContain("runpod-secret-test-key");
+    expect((await request("GET", "/admin/integrations/games", buyer)).statusCode).toBe(403);
   });
 
   it("shows simulated withdrawals and SupportPaused records to Admin", async () => {

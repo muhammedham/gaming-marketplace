@@ -10,6 +10,7 @@ export type AdminSection =
   | "orders"
   | "withdrawals"
   | "support"
+  | "integrations"
   | "settings";
 
 export type RecordStatus = "ACTIVE" | "INACTIVE";
@@ -98,6 +99,20 @@ export type AdminSettings = {
   updatedAt: string;
 };
 
+export type AdminGameIntegration = {
+  gameId: string;
+  gameName: string;
+  gameSlug: string;
+  gameStatus: RecordStatus;
+  supported: boolean;
+  provider: "EXTERNAL_API";
+  baseUrl: string;
+  apiKeyConfigured: boolean;
+  apiKeyMasked: string | null;
+  enabled: boolean;
+  updatedAt: string | null;
+};
+
 export type AdminDashboard = {
   counts: {
     users: number;
@@ -183,4 +198,10 @@ export const adminApi = {
   settings: () => apiRequest<AdminSettings>("/admin/settings"),
   updateSettings: (body: Pick<AdminSettings, "coinTryRate" | "withdrawalFeeRate" | "autoConfirmationHours">) =>
     patch<AdminSettings>("/admin/settings", body),
+  gameIntegrations: () =>
+    apiRequest<{ items: AdminGameIntegration[] }>("/admin/integrations/games").then((value) => value.items),
+  updateGameIntegration: (
+    gameId: string,
+    body: { baseUrl?: string; apiKey?: string; enabled: boolean },
+  ) => patch<AdminGameIntegration>(`/admin/integrations/games/${gameId}`, body),
 };

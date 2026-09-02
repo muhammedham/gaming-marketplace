@@ -18,11 +18,13 @@ import { listingsRoutes } from "./modules/listings/listings.routes.js";
 import { walletRoutes } from "./modules/wallet/wallet.routes.js";
 import { ordersRoutes } from "./modules/orders/orders.routes.js";
 import { communicationRoutes } from "./modules/communication/communication.routes.js";
+import { inventoryAnalysisRoutes } from "./modules/inventory-analysis/inventory-analysis.routes.js";
 import { authPlugin } from "./plugins/auth.js";
 
 interface BuildAppOptions {
   logger?: boolean;
   wakeOrderJobs?: () => void;
+  wakeInventoryAnalysisJobs?: () => void;
 }
 
 function validationDetails(error: FastifyError) {
@@ -42,6 +44,7 @@ export function buildApp(options: BuildAppOptions = {}) {
     logger: options.logger ?? (env.NODE_ENV !== "test" ? { level: env.LOG_LEVEL } : false),
   });
   app.decorate("orderJobsWake", options.wakeOrderJobs ?? (() => {}));
+  app.decorate("inventoryAnalysisJobsWake", options.wakeInventoryAnalysisJobs ?? (() => {}));
 
   const localWebOrigins = [
     env.WEB_ORIGIN,
@@ -91,6 +94,7 @@ export function buildApp(options: BuildAppOptions = {}) {
   app.register(walletRoutes, { prefix: "/api/v1/wallet" });
   app.register(ordersRoutes, { prefix: "/api/v1/orders" });
   app.register(communicationRoutes, { prefix: "/api/v1" });
+  app.register(inventoryAnalysisRoutes, { prefix: "/api/v1/inventory-analyses" });
 
   app.setErrorHandler((error, request, reply) => {
     const fastifyError = error as FastifyError;

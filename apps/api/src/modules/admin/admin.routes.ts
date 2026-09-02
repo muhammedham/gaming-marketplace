@@ -5,6 +5,7 @@ import type { FastifyInstance } from "fastify";
 import { getUserSession, toSessionPayload } from "../auth/auth.service.js";
 import { actorFor, IdParams, PageQuery } from "../orders/orders.shared.js";
 import * as service from "./admin.service.js";
+import * as integrations from "./game-integrations.service.js";
 
 const SearchQuery = Type.Intersect([
   PageQuery,
@@ -90,6 +91,11 @@ const SettingsBody = Type.Object({
   coinTryRate: Type.String({ pattern: "^(?:0|[1-9]\\d*)(?:\\.\\d{1,6})?$" }),
   withdrawalFeeRate: Type.String({ pattern: "^(?:0(?:\\.\\d{1,6})?|1(?:\\.0{1,6})?)$" }),
   autoConfirmationHours: Type.String({ pattern: "^(?:0|[1-9]\\d*)(?:\\.\\d{1,4})?$" }),
+});
+const GameIntegrationBody = Type.Object({
+  baseUrl: Type.Optional(Type.String({ minLength: 3, maxLength: 500 })),
+  apiKey: Type.Optional(Type.String({ minLength: 8, maxLength: 1000 })),
+  enabled: Type.Boolean(),
 });
 
 type Search = Static<typeof SearchQuery>;
@@ -190,6 +196,18 @@ export async function adminRoutes(app: FastifyInstance) {
     { schema: { body: SettingsBody } },
     async (request) => ({
       data: await service.updateSettings(await actorFor(request.user.sub), request.body),
+    }),
+  );
+  app.get("/integrations/games", async () => ({ data: { items: await integrations.listGameIntegrations() } }));
+  app.patch<{ Params: { id: string }; Body: Static<typeof GameIntegrationBody> }>(
+    "/integrations/games/:id",
+    { schema: { params: IdParams, body: GameIntegrationBody } },
+    async (request) => ({
+      data: await integrations.updateGameIntegration(
+        await actorFor(request.user.sub),
+        request.params.id,
+        request.body,
+      ),
     }),
   );
   app.get<{ Querystring: Search }>(

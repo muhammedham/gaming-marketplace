@@ -4,6 +4,11 @@ import { z } from "zod";
 
 loadDotenv({ path: fileURLToPath(new URL("../../../../.env", import.meta.url)), quiet: true });
 
+const optionalValue = z.preprocess(
+  (value) => value === "" ? undefined : value,
+  z.string().min(1).optional(),
+);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   API_PORT: z.coerce.number().int().positive().default(4000),
@@ -25,6 +30,19 @@ const envSchema = z.object({
   AUTO_CONFIRMATION_HOURS: z.coerce.number().positive().max(24 * 14).default(24),
   ORDER_JOBS_ENABLED: z.enum(["true", "false"]).default("true"),
   ORDER_JOB_RECONCILE_MS: z.coerce.number().int().min(1000).default(30000),
+  INVENTORY_JOBS_ENABLED: z.enum(["true", "false"]).default("true"),
+  INVENTORY_JOB_RECONCILE_MS: z.coerce.number().int().min(1000).default(30000),
+  INVENTORY_ANALYSIS_MAX_BYTES: z.coerce.number().int().positive().default(157_286_400),
+  INVENTORY_VIDEO_RETENTION_MINUTES: z.coerce.number().int().min(15).max(1440).default(120),
+  R2_UPLOAD_URL_TTL_SECONDS: z.coerce.number().int().min(60).max(604800).default(1800),
+  R2_READ_URL_TTL_SECONDS: z.coerce.number().int().min(60).max(604800).default(900),
+  R2_ACCOUNT_ID: optionalValue,
+  R2_BUCKET_NAME: optionalValue,
+  R2_ACCESS_KEY_ID: optionalValue,
+  R2_SECRET_ACCESS_KEY: optionalValue,
+  R2_ENDPOINT: optionalValue,
+  R2_REGION: z.string().min(1).default("auto"),
+  INTEGRATION_ENCRYPTION_KEY: optionalValue,
 });
 
 const result = envSchema.safeParse(process.env);

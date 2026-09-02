@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   Gamepad2,
   LayoutDashboard,
+  KeyRound,
   ListChecks,
   Settings,
   ShieldCheck,
@@ -21,6 +22,7 @@ import {
   adminApi,
   type AdminCategory,
   type AdminGame,
+  type AdminGameIntegration,
   type AdminSection,
   type AdminSettings,
   type RecordStatus,
@@ -42,6 +44,7 @@ const sections: {
   { id: "orders", label: "Orders", icon: ClipboardCheck },
   { id: "withdrawals", label: "Withdrawals", icon: CircleDollarSign },
   { id: "support", label: "Support", icon: Tickets },
+  { id: "integrations", label: "Game APIs", icon: KeyRound },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
@@ -1055,6 +1058,105 @@ function SupportView() {
   );
 }
 
+function GameIntegrationCard({ item }: { item: AdminGameIntegration }) {
+  const client = useQueryClient();
+  const [baseUrl, setBaseUrl] = useState(item.baseUrl);
+  const [apiKey, setApiKey] = useState("");
+  const [enabled, setEnabled] = useState(item.enabled);
+  const mutation = useMutation({
+    mutationFn: () => adminApi.updateGameIntegration(item.gameId, {
+      baseUrl,
+      ...(apiKey.trim() ? { apiKey: apiKey.trim() } : {}),
+      enabled,
+    }),
+    onSuccess: async () => {
+      setApiKey("");
+      await client.invalidateQueries({ queryKey: ["admin", "game-integrations"] });
+      await client.invalidateQueries({ queryKey: ["admin", "audit"] });
+    },
+  });
+
+  return (
+    <form
+      className={`${card} max-w-2xl space-y-5 p-6`}
+      onSubmit={(event) => {
+        event.preventDefault();
+        mutation.mutate();
+      }}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-[#912F56]">{item.provider}</p>
+          <h2 className="mt-1 text-xl font-bold">{item.gameName} inventory analyzer</h2>
+          <p className="mt-1 text-sm text-gray-600">Only Admins can view or change this configuration.</p>
+        </div>
+        <StatusBadge status={item.enabled ? "ACTIVE" : "INACTIVE"} />
+      </div>
+      <label className="block text-sm font-medium">
+        Inference API base URL
+        <Input
+          className="mt-1"
+          required={enabled}
+          type="url"
+          placeholder="https://example.trycloudflare.com"
+          value={baseUrl}
+          onChange={(event) => setBaseUrl(event.target.value)}
+        />
+        <span className="mt-1 block text-xs text-gray-500">
+          Enter the server URL. The marketplace adds /api/v1/external/inference automatically.
+        </span>
+      </label>
+      <label className="block text-sm font-medium">
+        Optional API key
+        <Input
+          className="mt-1"
+          type="password"
+          placeholder={item.apiKeyMasked ? `Configured (${item.apiKeyMasked}) — leave blank to keep it` : "Leave blank while the external API is public"}
+          value={apiKey}
+          onChange={(event) => setApiKey(event.target.value)}
+          autoComplete="new-password"
+        />
+        <span className="mt-1 block text-xs text-gray-500">
+          If configured, it is encrypted and sent as a Bearer token. The current API contract does not require one.
+        </span>
+      </label>
+      <label className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
+        <input
+          className="mt-0.5 size-4 accent-[#912F56]"
+          type="checkbox"
+          checked={enabled}
+          onChange={(event) => setEnabled(event.target.checked)}
+        />
+        <span><strong>Enable Seller analysis</strong><span className="mt-1 block text-gray-600">Sellers will see the optional upload step for Accounts + Valorant listings.</span></span>
+      </label>
+      <Button disabled={mutation.isPending}>
+        {mutation.isPending ? "Saving securely..." : "Save integration"}
+      </Button>
+      <MutationNotice mutation={mutation} />
+    </form>
+  );
+}
+
+function IntegrationsView() {
+  const query = useQuery({
+    queryKey: ["admin", "game-integrations"],
+    queryFn: adminApi.gameIntegrations,
+  });
+  if (query.isPending || query.isError || !query.data)
+    return <Feedback pending={query.isPending} error={query.error} />;
+  const supported = query.data.filter((item) => item.supported);
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+        Provider credentials are encrypted in PostgreSQL. Cloudflare R2 credentials remain server-only environment variables and are never entered here.
+      </div>
+      {supported.map((item) => <GameIntegrationCard item={item} key={`${item.gameId}-${item.updatedAt}`} />)}
+      {!supported.length ? <Feedback empty /> : null}
+      <p className="text-sm text-gray-500">More games can use the same configuration model later. Valorant is the only supported analyzer for now.</p>
+    </div>
+  );
+}
+
 function SettingsView() {
   const query = useQuery({
     queryKey: ["admin", "settings"],
@@ -1166,6 +1268,7 @@ export function AdminPage() {
     orders: <OrdersView />,
     withdrawals: <WithdrawalsView />,
     support: <SupportView />,
+    integrations: <IntegrationsView />,
     settings: <SettingsView />,
   };
   return (

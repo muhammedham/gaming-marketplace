@@ -20,6 +20,7 @@ import { TicketDetailPage } from "../pages/ticket-detail-page";
 import { NotificationsPage } from "../pages/notifications-page";
 import { SellerProfilePage } from "../pages/seller-profile-page";
 import { AdminPage } from "../pages/admin-page";
+import { InventoryAnalysisPage } from "../pages/inventory-analysis-page";
 import { ProtectedRoute } from "../routes/protected-route";
 
 export const appRoutes: RouteObject[] = [
@@ -51,6 +52,7 @@ export const appRoutes: RouteObject[] = [
           { path: "sell/listings", element: <SellerListingsPage /> },
           { path: "sell/listings/new", element: <ListingFormPage /> },
           { path: "sell/listings/:listingId/edit", element: <ListingFormPage /> },
+          { path: "sell/listings/:listingId/inventory-analysis", element: <InventoryAnalysisPage /> },
         ],
       },
       {

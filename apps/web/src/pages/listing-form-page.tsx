@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, ImagePlus, Save, Upload, Video } from "lucide-react";
+import { ArrowLeft, ImagePlus, Save, Sparkles, Upload, Video } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
@@ -47,7 +47,11 @@ function ListingEditor({ actor, existing }: { actor: ListingActor; existing?: Li
     },
     onSuccess: async (listing) => {
       await queryClient.invalidateQueries({ queryKey: listingKeys.all });
-      navigate(`/listings/${listing.id}`);
+      if (!editing && listing.category.slug === "accounts" && listing.game?.slug === "valorant") {
+        navigate(`/sell/listings/${listing.id}/inventory-analysis`);
+      } else {
+        navigate(`/listings/${listing.id}`);
+      }
     },
   });
   const activateMutation = useMutation({
@@ -88,6 +92,9 @@ function ListingEditor({ actor, existing }: { actor: ListingActor; existing?: Li
   }
 
   const existingCover = existing?.cover.url;
+  const inventoryEligible =
+    (categoriesQuery.data ?? []).find((item) => item.id === input.categoryId)?.slug === "accounts" &&
+    (gamesQuery.data ?? []).find((item) => item.id === input.gameId)?.slug === "valorant";
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -132,6 +139,19 @@ function ListingEditor({ actor, existing }: { actor: ListingActor; existing?: Li
                 </label>
               </div>
             </section>
+
+            {inventoryEligible ? (
+              <section className="rounded-xl border border-[#912F56]/25 bg-[#912F56]/5 p-5" aria-labelledby="valorant-inventory-assistant">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="mt-0.5 size-6 text-[#912F56]" />
+                  <div>
+                    <h2 className="font-bold" id="valorant-inventory-assistant">Optional Valorant inventory assistant</h2>
+                    <p className="mt-1 text-sm leading-6 text-gray-600">After publishing, you can open a separate secure page, upload an inventory walkthrough up to 150 MB, and let the configured model detect account items.</p>
+                    {editing && existing ? <Button asChild className="mt-3" size="sm" variant="secondary"><Link to={`/sell/listings/${existing.id}/inventory-analysis`}>Open inventory analyzer</Link></Button> : null}
+                  </div>
+                </div>
+              </section>
+            ) : null}
 
             <section className="border-t border-gray-200 pt-6" aria-labelledby="listing-media">
               <h2 className="text-lg font-semibold" id="listing-media">Media</h2>

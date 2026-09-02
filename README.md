@@ -233,6 +233,24 @@ API testleri `gaming_marketplace_test` adlı ayrı PostgreSQL schema'sında migr
 ve seed çalıştırır. Gerçek kullanıcıların bakiyelerine ve bildirimlerine dokunmaz.
 Redis worker testi benzersiz test kuyruğu kullanır ve sadece fixture order'larını tarar.
 
+## Valorant Inventory Video Analyzer
+
+- A new optional post-publish page is shown for `Accounts + Valorant` listings.
+- Sellers upload MP4/WebM directly to a private Cloudflare R2 bucket using a
+  short-lived signed URL. The separate analyzer limit is 150 MB.
+- BullMQ starts and polls the external inference job outside the browser request. There is no
+  overall analysis timeout; polling continues until the provider returns a terminal status.
+- The external API `result` stays stored unchanged for diagnostics. The Seller UI
+  reads `title` detections from every frame, removes duplicates, corrects small OCR
+  errors in known weapon names, and groups the remaining skin names by weapon.
+- Temporary videos are deleted after two hours. Results remain attached to the
+  Seller's listing analysis record.
+- Admin `/admin/integrations` manages the Valorant API base URL, optional encrypted API key,
+  and enabled state. R2 credentials stay only in `.env`.
+
+Environment values and endpoint details are documented in
+[Valorant Inventory Analysis Contract](docs/api/inventory-analysis-contract.md).
+
 ## Veritabanı Komutları
 
 ```powershell
