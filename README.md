@@ -1,161 +1,177 @@
 # Gaming Marketplace
 
-A full-stack marketplace for digital gaming goods, with dedicated Buyer, Seller, and Admin experiences. Built by Muhammed and Zeyad with React, TypeScript, Fastify, and PostgreSQL.
+An independent marketplace MVP where players can list and purchase digital gaming goods. Mercur was used only as a reference for marketplace flows; its code is not included in this repository.
 
-**[Try the live demo](https://gaming-marketplace-demo.vercel.app)** · [Watch the walkthroughs](#video-walkthroughs) · [Run locally](#run-locally)
+## Live Demo and Walkthroughs
 
-![Gaming Marketplace homepage](docs/ui-refresh/screenshots/home-desktop.png)
+**[Try Gaming Marketplace](https://gaming-marketplace-demo.vercel.app)** before cloning and setting up the project.
 
-## Try before you clone
+The hosted demo uses sample data: Buyer actions are saved only in your browser, while Seller and Admin are read-only. This simplified setup is for visitors to try the user experience. The original application in this repository uses real authentication, a backend and database, and full Seller/Admin workflows.
 
-The [live demo](https://gaming-marketplace-demo.vercel.app) is a separate portfolio version designed to let you explore the experience before setting up the project locally.
+![Gaming Marketplace homepage](docs/ui-refresh/screenshots/home-readme.png)
 
-- **Buyer:** try purchases, messages, support tickets, and the simulated wallet.
-- **Seller and Admin:** explore the interfaces in read-only mode.
-- **Your own session:** demo changes stay in your browser and do not affect other visitors. Use **Reset my demo** to start over.
+The following videos include audio and show the **original application**, not the restricted demo.
 
-**This is not how the full application normally operates.** The hosted demo uses sample data and browser-local state, with simplified role selection and restricted actions. This repository contains the full application: authentication, persistent database records, backend authorization, Seller listing management, and Admin operations. The optional inventory analyzer requires your own storage and inference service configuration.
+### Buyer POV
 
-## Video walkthroughs
+https://github.com/user-attachments/assets/df7ea98c-ab7f-40d2-b211-d1086fd0ca34
 
-These recordings show the **original application**, not the restricted hosted demo. All three videos include audio. Select a recording to open it on GitHub; use its download option if your browser does not offer inline playback.
+### Seller POV
 
-| Walkthrough | What it shows | Recording |
-| --- | --- | --- |
-| Buyer POV | Shopping, orders, delivery confirmation, messaging, and support | [Watch Buyer POV · 1:19](docs/videos/buyer-pov-v1.mp4) |
-| Seller POV | Listing management and the seller workflow | [Watch Seller POV · 1:24](docs/videos/seller-pov-v1.mp4) |
-| Admin POV | Administration dashboard and responding to a support ticket | [Watch Admin POV · 1:22](docs/videos/admin-pov-v1.mp4) |
+https://github.com/user-attachments/assets/671b2478-c4a2-4720-a06f-3343cbcd4a10
 
-## Features
+### Admin POV
 
-- **Marketplace:** categories and games, search, price filters, sorting, pagination, and listing image galleries.
-- **Seller tools:** create and edit listings, manage media, activate or deactivate inventory, and handle sales and delivery.
-- **Accounts and access:** Buyer, Seller, and Admin roles with backend permission checks and HttpOnly session cookies.
-- **Wallet and orders:** available and held Coin balances, transaction history, simulated deposits and withdrawals, delivery confirmation, refunds, and configurable automatic order completion.
-- **Communication:** direct and order-related messaging, support tickets, notifications, and reviews for completed orders.
-- **Administration:** manage users, catalog entries, listings, orders, support, settings, and integrations, with audit records for administrative changes.
-- **Valorant inventory analysis:** optionally upload an inventory video for an Accounts + Valorant listing, extract skin names through an external inference API, and copy a deduplicated list grouped by weapon.
+https://github.com/user-attachments/assets/752e2758-efa5-45fe-a6fa-6be5bac9f42a
 
-Coin deposits and withdrawals are **simulations**. This project does not process real payments or bank transfers. Messaging and notifications use polling.
+## Team and Timeline
 
-## Technology
+- Muhammed — Full-Stack Developer
+- Zeyad — Full-Stack Developer
+- Project start: August 12, 2026
+- Final sprint delivery: September 5, 2026
 
-| Layer | Stack |
-| --- | --- |
-| Frontend | React, TypeScript, Vite, Tailwind CSS, React Router, TanStack Query, Zustand |
-| Backend | Node.js, TypeScript, Fastify |
-| Data and jobs | PostgreSQL, Prisma, Redis, BullMQ |
-| Optional video integration | Private Cloudflare R2 storage and an external inference API |
-| Development | npm workspaces, Docker Compose, Vitest, ESLint, Postman |
+## Technology Stack
 
-## Run locally
+- Web: React, TypeScript, Vite, Tailwind CSS, React Router, TanStack Query, Zustand
+- API: Node.js, TypeScript, Fastify
+- Data: Prisma ORM, PostgreSQL, Redis
+- Background jobs: BullMQ
+- Tools: npm workspaces, Docker Compose, Vitest, Postman
 
-### Prerequisites
+## Project Structure
 
-- Node.js 20 or later and npm.
-- Docker Desktop running with Docker Compose available.
-- Git.
-
-### Setup
-
-```bash
-git clone https://github.com/muhammedham/gaming-marketplace.git
-cd gaming-marketplace
-npm install
+```text
+gaming-marketplace/
+|-- apps/
+|   |-- web/                 React + Vite
+|   `-- api/                 Fastify + Prisma
+|       |-- prisma/          Schema, migrations, and seed
+|       `-- src/modules/     API feature modules and workers
+|-- docs/                    Architecture and API documentation
+|-- uploads/                 Local media (excluded from Git)
+|-- docker-compose.yml
+|-- .env.example
+`-- package.json
 ```
 
-Copy `.env.example` to `.env`:
+## Initial Setup
+
+Requirements: Node.js 20 or later, npm, Git, and Docker Desktop running.
+
+Clone the repository, then run the following in PowerShell:
 
 ```powershell
-# Windows PowerShell
+git clone https://github.com/muhammedham/gaming-marketplace.git
+cd gaming-marketplace
 Copy-Item .env.example .env
-```
-
-```bash
-# macOS / Linux
-cp .env.example .env
-```
-
-Set `JWT_SECRET` in `.env` to a random value of at least 32 characters. Keep `VITE_LISTINGS_SOURCE=api` to use the real backend. The example database settings match the included local Docker services.
-
-```bash
+npm install
 npm run setup:final
 npm run dev
 ```
 
-`setup:final` starts PostgreSQL and Redis, applies migrations, generates Prisma Client, and seeds local accounts. `dev` starts the frontend and API together.
+On macOS/Linux, use `cp .env.example .env` instead of `Copy-Item`.
 
-| Service | Local address |
+`setup:final` starts PostgreSQL and Redis, applies migrations, generates Prisma Client, and seeds the database. `dev` starts both development servers; use `dev:web` and `dev:api` to run them separately.
+
+Set your own `JWT_SECRET` in `.env` (at least 32 characters). Keep `VITE_LISTINGS_SOURCE=api` for the real Fastify backend. The optional R2/inference integration can be configured later.
+
+## Local Addresses
+
+| Service | Address |
 | --- | --- |
-| Frontend | http://127.0.0.1:5173 |
+| Web | http://127.0.0.1:5173 |
 | API | http://127.0.0.1:4000 |
 | Health check | http://127.0.0.1:4000/health |
 | PostgreSQL | localhost:5433 |
 | Redis | localhost:6380 |
 
-### Local sample accounts
+## Demo Accounts
 
-The seed creates these development accounts with empty wallets. Use the simulated deposit flow to add Coins, or run `npm run demo:final` for additional demonstration data.
+`npm run db:seed` creates these local development accounts and a zero-balance wallet for each. Deposits and withdrawals are simulation-only.
 
 | Role | Email | Password |
 | --- | --- | --- |
+| Admin | `admin@gaming.local` | `Admin123!` |
 | Buyer | `buyer@gaming.local` | `Buyer123!` |
 | Seller | `seller@gaming.local` | `Seller123!` |
-| Admin | `admin@gaming.local` | `Admin123!` |
 
-These credentials are for local sample data only. Configure your own values before hosting a full installation. The public demo uses role selection instead.
+These are sample credentials for local development. Configure your own credentials before hosting a full installation.
 
-### Optional Valorant video analysis
+## Sprint 1 — Authentication
 
-The marketplace can run without the inventory analyzer. To enable it:
+- Registration supports Buyer and Seller roles; user and wallet creation are atomic.
+- Login stores the session JWT in an HttpOnly cookie.
+- Backend authorization protects role-specific actions; logout clears the session.
 
-1. Configure a private Cloudflare R2 bucket and the `R2_*` values in `.env`.
-2. Generate a 32-byte Base64 encryption key and set `INTEGRATION_ENCRYPTION_KEY` in `.env`.
-3. In **Admin → Integrations**, configure and enable the Valorant inference API URL and its optional API key.
-4. Publish an Accounts + Valorant listing and use its optional video analysis page.
+[Auth API contract](docs/api/auth-contract.md)
 
-Videos upload directly to private R2 storage using signed URLs. MP4 and WebM are supported up to the configured 150 MB limit. Background jobs poll the provider until a terminal status is returned; there is no five-minute overall analysis cutoff. Temporary video cleanup is scheduled after two hours and requires the backend and workers to be running. Results are grouped by weapon with duplicate skin names removed.
+## Sprint 2 — Categories, Games, Listings, and Media
 
-The inference model/service is external and is not included in this repository. See the [inventory analysis integration guide](docs/api/inventory-analysis-contract.md) for configuration, endpoints, and storage requirements. Keep real credentials in `.env`; never commit them.
+- Search and filter active listings by category, game, price, and sorting, with pagination.
+- Sellers create listings with a cover image, manage galleries/videos, edit details, and activate or deactivate their own inventory.
+- The backend validates ownership, media type, file signature, size, and upload limits.
 
-## Development commands
+[Listings API contract](docs/api/listings-contract.md)
 
-```bash
-npm run dev          # Frontend and backend
-npm run lint         # Lint workspaces
-npm run test         # Run tests
-npm run build        # Build workspaces
-npm run verify       # Lint, test, and build
-npm run db:deploy    # Apply existing database migrations
+## Sprint 3 — Wallet and Coin Simulation
+
+- Available and held balances, deposit/withdrawal simulation, fee preview, and paginated history.
+- Balance changes and append-only ledger entries are recorded in the same database transaction.
+- Withdrawals store masked IBAN information. No real payments or bank transfers are processed.
+
+[Wallet API contract](docs/api/wallet-contract.md)
+
+## Sprint 4 — Orders, 24-Hour Confirmation, and Communication
+
+- Purchases hold Buyer Coins until confirmation releases them to the Seller; refunds return them to the Buyer.
+- Delivery notes, order timelines, confirmation, and default 24-hour automatic completion are supported by background jobs.
+- Support can pause and resume order resolution or complete/refund an order.
+- Text messaging, notifications, seller profiles, and completed-order reviews are included. Communication uses polling.
+
+[Orders and support API contract](docs/api/orders-support-contract.md) · [Sprint 4 documentation](docs/sprint-4/README.md)
+
+## Sprint 5 — Admin, Integration, and Final Delivery
+
+- Admin dashboard and management screens cover users, catalog, listings, orders, withdrawals, support, and settings.
+- Administrative changes create audit records. The last active Admin cannot be removed.
+- Settings control the Coin conversion rate, withdrawal fee, and automatic confirmation period for new deliveries.
+
+`npm run demo:final` prepares additional demonstration records, including a completed order with a review and a paused support order.
+
+[Admin API contract](docs/api/admin-contract.md) · [Sprint 5 documentation](docs/sprint-5/README.md) · [Known limitations](docs/final/known-medium.md)
+
+## Valorant Inventory Video Analyzer
+
+- Optional analysis for `Accounts + Valorant` listings, with MP4/WebM uploads up to the configured 150 MB limit.
+- Videos upload directly to private Cloudflare R2 storage using signed URLs.
+- Background jobs poll the external inference API until a terminal status is returned, without a five-minute overall cutoff.
+- The UI collects detections across frames, removes duplicates, and groups skin names by weapon for copying.
+- Temporary video cleanup is scheduled after two hours and requires the backend workers to be running.
+- Admin manages the API URL and optional encrypted API key under Integrations. R2 credentials and the encryption key stay in `.env`.
+
+The external model/service is not included. [Inventory analysis integration guide](docs/api/inventory-analysis-contract.md)
+
+## Database Commands
+
+```powershell
+npm run db:up        # Start PostgreSQL and Redis
+npm run db:deploy    # Apply existing migrations
+npm run db:seed      # Create/update local sample accounts
+npm run db:migrate   # Create migrations during development
 npm run db:generate  # Regenerate Prisma Client
-npm run db:down      # Stop local Docker services
+npm run db:down      # Stop Docker services
 ```
 
-API integration tests require PostgreSQL and Redis. They use a separate test schema and isolated job fixtures. On Windows, stop the API before regenerating Prisma Client if an `EPERM` file-lock error occurs.
+On Windows, stop the API before regenerating Prisma Client if an `EPERM` file-lock error occurs.
 
-## Project structure
+## Quality Checks
 
-```text
-apps/
-  web/                 React frontend
-  api/
-    prisma/            Database schema, migrations, and seed
-    src/modules/       API features and background jobs
-docs/                  API contracts, architecture, and walkthrough videos
-demo-assets/           Sample marketplace artwork
-uploads/               Local uploaded media (excluded from Git)
+```powershell
+npm run lint
+npm run test
+npm run build
+npm run verify       # Lint, tests, and builds
 ```
 
-## Documentation
-
-- [Architecture](docs/architecture/README.md)
-- [Authentication](docs/api/auth-contract.md)
-- [Listings and media](docs/api/listings-contract.md)
-- [Wallet](docs/api/wallet-contract.md)
-- [Orders, messaging, and support](docs/api/orders-support-contract.md)
-- [Administration](docs/api/admin-contract.md)
-- [Inventory analysis](docs/api/inventory-analysis-contract.md)
-- [Postman collections](docs/postman)
-- [Known limitations](docs/final/known-medium.md)
-
-The linked engineering documents include the project's original Turkish documentation.
+API integration tests require PostgreSQL and Redis and use a separate test schema. [Postman collections](docs/postman) and detailed API contracts are included in `docs/`; the original engineering documentation includes Turkish text.
