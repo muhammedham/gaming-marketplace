@@ -1,292 +1,161 @@
 # Gaming Marketplace
 
-Oyuncuların dijital ürünlerini listeleyip satın alabileceği bağımsız bir
-marketplace MVP projesidir. Mercur kodu bu repository'ye dahil edilmez; yalnızca
-kullanıcı akışları ve marketplace yaklaşımı için referans olarak kullanılır.
+A full-stack marketplace for digital gaming goods, with dedicated Buyer, Seller, and Admin experiences. Built by Muhammed and Zeyad with React, TypeScript, Fastify, and PostgreSQL.
 
-## Ekip ve Takvim
+**[Try the live demo](https://gaming-marketplace-demo.vercel.app)** · [Watch the walkthroughs](#video-walkthroughs) · [Run locally](#run-locally)
 
-- Muhammed - Full-Stack Developer
-- Zeyad - Full-Stack Developer
-- Başlangıç: 12 Ağustos 2026
-- Nihai teslim: 5 Eylül 2026
+![Gaming Marketplace homepage](docs/ui-refresh/screenshots/home-desktop.png)
 
-## Teknoloji Yığını
+## Try before you clone
 
-- Web: React, TypeScript, Vite, Tailwind CSS, React Router, TanStack Query, Zustand
-- API: Node.js, TypeScript, Fastify
-- Veri: Prisma ORM, PostgreSQL, Redis
-- Araçlar: npm workspaces, Docker Compose, Vitest, Postman
+The [live demo](https://gaming-marketplace-demo.vercel.app) is a separate portfolio version designed to let you explore the experience before setting up the project locally.
 
-## Proje Yapısı
+- **Buyer:** try purchases, messages, support tickets, and the simulated wallet.
+- **Seller and Admin:** explore the interfaces in read-only mode.
+- **Your own session:** demo changes stay in your browser and do not affect other visitors. Use **Reset my demo** to start over.
 
-```text
-gaming-marketplace/
-|-- apps/
-|   |-- web/                 React + Vite
-|   `-- api/                 Fastify + Prisma
-|       |-- prisma/          Şema, migration ve seed
-|       `-- src/modules/     Auth ve diğer API modülleri
-|-- docs/                    Kararlar ve API dokümantasyonu
-|-- uploads/                 Yerel medya dosyaları
-|-- docker-compose.yml
-|-- .env.example
-`-- package.json
-```
+**This is not how the full application normally operates.** The hosted demo uses sample data and browser-local state, with simplified role selection and restricted actions. This repository contains the full application: authentication, persistent database records, backend authorization, Seller listing management, and Admin operations. The optional inventory analyzer requires your own storage and inference service configuration.
 
-## İlk Kurulum
+## Video walkthroughs
 
-Gereksinimler: Node.js 20 veya üzeri, npm ve çalışan Docker Desktop.
+These recordings show the **original application**, not the restricted hosted demo. All three videos include audio. Select a recording to open it on GitHub; use its download option if your browser does not offer inline playback.
 
-PowerShell'i repository klasöründe açıp şu komutları çalıştırın:
+| Walkthrough | What it shows | Recording |
+| --- | --- | --- |
+| Buyer POV | Shopping, orders, delivery confirmation, messaging, and support | [Watch Buyer POV · 1:19](docs/videos/buyer-pov-v1.mp4) |
+| Seller POV | Listing management and the seller workflow | [Watch Seller POV · 1:24](docs/videos/seller-pov-v1.mp4) |
+| Admin POV | Administration dashboard and responding to a support ticket | [Watch Admin POV · 1:22](docs/videos/admin-pov-v1.mp4) |
 
-```powershell
-Copy-Item .env.example .env
+## Features
+
+- **Marketplace:** categories and games, search, price filters, sorting, pagination, and listing image galleries.
+- **Seller tools:** create and edit listings, manage media, activate or deactivate inventory, and handle sales and delivery.
+- **Accounts and access:** Buyer, Seller, and Admin roles with backend permission checks and HttpOnly session cookies.
+- **Wallet and orders:** available and held Coin balances, transaction history, simulated deposits and withdrawals, delivery confirmation, refunds, and configurable automatic order completion.
+- **Communication:** direct and order-related messaging, support tickets, notifications, and reviews for completed orders.
+- **Administration:** manage users, catalog entries, listings, orders, support, settings, and integrations, with audit records for administrative changes.
+- **Valorant inventory analysis:** optionally upload an inventory video for an Accounts + Valorant listing, extract skin names through an external inference API, and copy a deduplicated list grouped by weapon.
+
+Coin deposits and withdrawals are **simulations**. This project does not process real payments or bank transfers. Messaging and notifications use polling.
+
+## Technology
+
+| Layer | Stack |
+| --- | --- |
+| Frontend | React, TypeScript, Vite, Tailwind CSS, React Router, TanStack Query, Zustand |
+| Backend | Node.js, TypeScript, Fastify |
+| Data and jobs | PostgreSQL, Prisma, Redis, BullMQ |
+| Optional video integration | Private Cloudflare R2 storage and an external inference API |
+| Development | npm workspaces, Docker Compose, Vitest, ESLint, Postman |
+
+## Run locally
+
+### Prerequisites
+
+- Node.js 20 or later and npm.
+- Docker Desktop running with Docker Compose available.
+- Git.
+
+### Setup
+
+```bash
+git clone https://github.com/muhammedham/gaming-marketplace.git
+cd gaming-marketplace
 npm install
-npm run db:up
-npm run db:deploy
-npm run db:generate
-npm run db:seed
-npm run dev
 ```
 
-Final setup can be shortened after `npm install`:
+Copy `.env.example` to `.env`:
 
 ```powershell
+# Windows PowerShell
+Copy-Item .env.example .env
+```
+
+```bash
+# macOS / Linux
+cp .env.example .env
+```
+
+Set `JWT_SECRET` in `.env` to a random value of at least 32 characters. Keep `VITE_LISTINGS_SOURCE=api` to use the real backend. The example database settings match the included local Docker services.
+
+```bash
 npm run setup:final
 npm run dev
 ```
 
-`npm run dev`, Web ve API geliştirme sunucularını aynı terminalde birlikte
-başlatır. Ayrı ayrı çalıştırmak için `npm run dev:web` ve `npm run dev:api`
-komutları kullanılabilir.
+`setup:final` starts PostgreSQL and Redis, applies migrations, generates Prisma Client, and seeds local accounts. `dev` starts the frontend and API together.
 
-Yeni `.env.example`, ilan ekranlarını gerçek Fastify API'sine bağlayan
-`VITE_LISTINGS_SOURCE=api` ayarıyla gelir. Daha önce oluşturulmuş bir `.env`
-dosyasında bu değer `mock` ise Sprint 2 entegrasyonu için `api` olarak değiştirin.
+| Service | Local address |
+| --- | --- |
+| Frontend | http://127.0.0.1:5173 |
+| API | http://127.0.0.1:4000 |
+| Health check | http://127.0.0.1:4000/health |
+| PostgreSQL | localhost:5433 |
+| Redis | localhost:6380 |
 
-## Yerel Adresler
+### Local sample accounts
 
-- Web: `http://127.0.0.1:5173`
-- API: `http://127.0.0.1:4000`
-- Health: `http://127.0.0.1:4000/health`
-- PostgreSQL: `127.0.0.1:5433`
-- Redis: `127.0.0.1:6380`
+The seed creates these development accounts with empty wallets. Use the simulated deposit flow to add Coins, or run `npm run demo:final` for additional demonstration data.
 
-Mercur referans ortamının 3000, 7001, 7002 ve 9000 portlarıyla çakışmamak için
-farklı host portları kullanılır.
-
-## Demo Hesapları
-
-`npm run db:seed` aşağıdaki hesapları ve her hesap için sıfır bakiyeli Wallet
-kaydını oluşturur. Seed tekrar çalıştırılabilir.
-
-| Rol | E-posta | Şifre |
+| Role | Email | Password |
 | --- | --- | --- |
-| Admin | `admin@gaming.local` | `Admin123!` |
 | Buyer | `buyer@gaming.local` | `Buyer123!` |
 | Seller | `seller@gaming.local` | `Seller123!` |
+| Admin | `admin@gaming.local` | `Admin123!` |
 
-## Sprint 1 Auth Akışı
+These credentials are for local sample data only. Configure your own values before hosting a full installation. The public demo uses role selection instead.
 
-- Kayıt sırasında yalnızca Buyer veya Seller rolü seçilebilir.
-- User ve sıfır bakiyeli Wallet aynı veritabanı transaction'ında oluşturulur.
-- Login sonrası JWT, JavaScript tarafından okunamayan `gm_session` HttpOnly
-  cookie'sine yazılır.
-- `/api/v1/auth/me`, oturumdaki kullanıcıyı, rolünü ve Wallet bakiyelerini döner.
-- `/api/v1/admin/session` yalnızca Admin rolüne izin verir.
-- Logout cookie'yi temizler ve kullanıcıyı Login sayfasına yönlendirir.
+### Optional Valorant video analysis
 
-Ayrıntılı response ve hata sözleşmesi [Auth API Contract](docs/api/auth-contract.md)
-dosyasındadır.
+The marketplace can run without the inventory analyzer. To enable it:
 
-## Sprint 2 Kategori, Oyun ve İlan Akışı
+1. Configure a private Cloudflare R2 bucket and the `R2_*` values in `.env`.
+2. Generate a 32-byte Base64 encryption key and set `INTEGRATION_ENCRYPTION_KEY` in `.env`.
+3. In **Admin → Integrations**, configure and enable the Valorant inference API URL and its optional API key.
+4. Publish an Accounts + Valorant listing and use its optional video analysis page.
 
-- Seed; Accounts, Game Currency, Items, Skins, Gift Cards ve Boosting
-  kategorilerini, ayrıca dört demo oyunu tekrar çalıştırılabilir biçimde oluşturur.
-- Public katalog yalnız `ACTIVE` ve Cover'ı olan ilanları döndürür. Arama;
-  title/description, category, game, min-max price, sorting ve pagination'ı
-  birlikte destekler.
-- Seller, ilanını Cover ile tek multipart isteğinde oluşturur; kendi ilanlarını
-  düzenleyebilir, pasifleştirebilir ve Gallery/Video ekleyebilir.
-- Başka bir Seller update, deactivate veya media upload yaptığında `403
-  FORBIDDEN` alır. Pasif ilan yalnız sahibinin oturumunda detaylandırılabilir.
-- Upload dosya adı UUID ile yeniden üretilir. MIME, uzantı, dosya imzası, boyut,
-  adet ve sahiplik backend tarafında doğrulanır; dosyalar yalnız `/uploads/`
-  public path'inden sunulur.
+Videos upload directly to private R2 storage using signed URLs. MP4 and WebM are supported up to the configured 150 MB limit. Background jobs poll the provider until a terminal status is returned; there is no five-minute overall analysis cutoff. Temporary video cleanup is scheduled after two hours and requires the backend and workers to be running. Results are grouped by weapon with duplicate skin names removed.
 
-| Endpoint | Erişim | Açıklama |
-| --- | --- | --- |
-| `GET /api/v1/categories` | Public | Kategori listesi |
-| `GET /api/v1/games` | Public | Oyun listesi |
-| `GET /api/v1/listings` | Public | Arama, filtre, sıralama ve pagination |
-| `GET /api/v1/listings/:listingId` | Public/Owner | Aktif detay veya sahibine pasif detay |
-| `GET /api/v1/listings/mine` | Seller | Aktif ve pasif kendi ilanları |
-| `POST /api/v1/listings` | Seller | Cover zorunlu atomik multipart create |
-| `PATCH /api/v1/listings/:listingId` | Owner Seller | İlan bilgilerini güncelleme |
-| `POST /api/v1/listings/:listingId/deactivate` | Owner Seller | Pasifleştirme |
-| `POST /api/v1/listings/:listingId/activate` | Owner Seller | Pasif ilanı yeniden aktifleştirme |
-| `POST /api/v1/listings/:listingId/media` | Owner Seller | Cover/Gallery/Video upload |
+The inference model/service is external and is not included in this repository. See the [inventory analysis integration guide](docs/api/inventory-analysis-contract.md) for configuration, endpoints, and storage requirements. Keep real credentials in `.env`; never commit them.
 
-Ayrıntılı request, response, filtre ve upload sözleşmesi [Listings API
-Contract](docs/api/listings-contract.md) dosyasındadır.
+## Development commands
 
-## Wallet API
-
-- `GET /api/v1/wallet` available/held Coin bakiyelerini ve Coin/TRY ile withdrawal fee simülasyon ayarlarını döner.
-- `POST /api/v1/wallet/deposits/simulate` TRY tutarını rate üzerinden Coin'e çevirir ve atomik ledger kaydı oluşturur.
-- `POST /api/v1/wallet/withdrawals/preview` ücret ve net TRY tutarını hesaplar; bakiye değiştirmez.
-- `POST /api/v1/wallet/withdrawals/simulate` IBAN bilgisiyle simüle çekim yapar ve yalnızca maskelenmiş IBAN saklar.
-- `GET /api/v1/wallet/transactions`, `/deposits` ve `/withdrawals` sayfalı geçmiş döner.
-- Her bakiye değişimi açıklamalı tek bir `WalletTransaction` kaydıyla aynı transaction içinde tutulur; ledger satırları append-only'dir.
-- Sprint 3 UI'sındaki Wallet sayfası simulation-only uyarısı, bakiye kartları, deposit formu, withdrawal preview/formu ve geçmişi içerir.
-
-Ayrıntılı request ve response sözleşmesi [Wallet API Contract](docs/api/wallet-contract.md)
-dosyasındadır.
-
-## Sprint 4 - Order, 24 saat ve iletişim
-
-Muhammed ve Zeyad kapsamları birlikte entegre edildi:
-
-- Product Details: Buy Now, bakiye yetersizliği, Message Seller ve gerçek seller rating.
-- Purchases/Sales Orders: status timeline, teslimat notu, onay, iptal/iade, sunucu
-  zamanına göre sayaç ve order chat.
-- Coin purchase sırasında Buyer Available'dan Held'e geçer. Onayda yalnız bir kez
-  Seller Available'a aktarılır; iptalde Buyer Available'a geri döner.
-- API ile birlikte çalışan BullMQ worker, varsayılan 24 saatte uygun siparişi
-  tamamlar. DB taraması yeniden başlatma/Redis hatasında eksik işleri kurtarır.
-- Support, ticket detail ve Admin support desk: cevap, durum, duraklatma,
-  kalan süreyle devam, tamamlama veya iade. Genel Admin paneli Sprint 5 kapsamındadır.
-- Text-only Messages, site içi read/unread Notifications, tek Completed-order
-  review ve public Seller Profile. Mesaj/order/notification polling: 5 saniye.
-- Wallet geçmişi HOLD/RELEASE/SALE/REFUND hareketlerini ve order bağlantısını gösterir.
-
-Yeni migration'ları mevcut verileri silmeden uygulayın:
-
-```powershell
-npm install
-npm run db:up
-npm run db:deploy
-npm run db:generate
-npm run dev
+```bash
+npm run dev          # Frontend and backend
+npm run lint         # Lint workspaces
+npm run test         # Run tests
+npm run build        # Build workspaces
+npm run verify       # Lint, test, and build
+npm run db:deploy    # Apply existing database migrations
+npm run db:generate  # Regenerate Prisma Client
+npm run db:down      # Stop local Docker services
 ```
 
-Windows'ta Prisma generate `EPERM` verirse API geliştirme sunucusunu durdurun,
-generate çalıştırın, sonra `npm run dev` ile yeniden başlatın. Veritabanını resetlemeyin.
+API integration tests require PostgreSQL and Redis. They use a separate test schema and isolated job fixtures. On Windows, stop the API before regenerating Prisma Client if an `EPERM` file-lock error occurs.
 
-`AUTO_CONFIRMATION_HOURS=24`, `ORDER_JOBS_ENABLED=true`,
-`ORDER_JOB_RECONCILE_MS=30000` varsayılandır. Yerel hızlı demo için hours `0.01`
-(36 saniye) olabilir; API yeniden başlatılmalı, önceki deadline'lar değiştirilmez.
+## Project structure
 
-İsteğe bağlı ayrı ve tekrar çalıştırılabilir demo verisi:
-
-```powershell
-npm run demo:sprint4
+```text
+apps/
+  web/                 React frontend
+  api/
+    prisma/            Database schema, migrations, and seed
+    src/modules/       API features and background jobs
+docs/                  API contracts, architecture, and walkthrough videos
+demo-assets/           Sample marketplace artwork
+uploads/               Local uploaded media (excluded from Git)
 ```
 
-Bu komut `sprint4-buyer@gaming.local`, `sprint4-seller@gaming.local` ve
-`sprint4-admin@gaming.local` hesaplarını (`Sprint4Demo123!`), tek 40 Coin demo ilanını
-ve Buyer için tek seferlik 1000 TRY simulated deposit'i oluşturur. Mevcut kullanıcı,
-ürün veya bakiyeyi resetlemez. Yalnız yerel geliştirme içindir.
+## Documentation
 
-Ayrıntılar:
+- [Architecture](docs/architecture/README.md)
+- [Authentication](docs/api/auth-contract.md)
+- [Listings and media](docs/api/listings-contract.md)
+- [Wallet](docs/api/wallet-contract.md)
+- [Orders, messaging, and support](docs/api/orders-support-contract.md)
+- [Administration](docs/api/admin-contract.md)
+- [Inventory analysis](docs/api/inventory-analysis-contract.md)
+- [Postman collections](docs/postman)
+- [Known limitations](docs/final/known-medium.md)
 
-- [Orders/Support API contract](docs/api/orders-support-contract.md): tüm endpoint,
-  durum, para, yetki, polling ve worker sözleşmesi.
-- [Sprint 4 teslim ve demo](docs/sprint-4/README.md): kişi bazlı kapsam, kabul
-  matrisi, senaryolar, test kanıtı, sınırlamalar ve GitHub issue eşlemesi.
-- [Sprint 4 Postman collection](docs/postman/Gaming_Marketplace_Sprint_4.postman_collection.json):
-  auth, purchase, delivery, confirmation, messages, support, review, notifications örnekleri.
-
-## Sprint 5 - Admin, entegrasyon ve final
-
-- `/admin` Dashboard; kullanıcı, aktif katalog/ilan, order/support, Available/Held ve
-  temsili withdrawal özetlerini gösterir. Son Wallet ledger ve Admin audit kayıtları
-  aynı ekrandadır.
-- `/admin/users`, `/categories`, `/games`, `/listings`, `/orders`, `/withdrawals`,
-  `/support` ve `/settings` tarama odaklı, filtreli ve rol korumalı ekranlardır.
-- Admin değişiklikleri veritabanı transaction'ı içinde `AdminAuditLog` kaydı üretir.
-  Son aktif Admin kaldırılamaz; Admin kendi rolünü değiştiremez veya kendini askıya alamaz.
-- Kategori/oyun pasifleştirmesi bağlı aktif ilanları atomik olarak gizler. Pasif
-  taxonomy ile ilan yeniden yayınlanamaz.
-- System Settings, Coin/TRY rate, withdrawal fee ve yeni teslimatlar için otomatik
-  onay süresini yönetir. Eski deadline ve ledger kayıtları değiştirilmez.
-- Withdrawal Admin ekranı dahil her yerde **Simulation only** olarak etiketlidir.
-
-Final ve tekrar çalıştırılabilir kabul verisini hazırlamak için:
-
-```powershell
-npm run demo:final
-```
-
-Komut seed'i tekrar çalıştırır; bir Completed + review order, bir SupportPaused
-order ve temsili withdrawal kaydı bırakır, ardından Admin kanıt özetini terminale
-yazar. Gerçek ödeme veya banka transferi yapılmaz.
-
-Sprint 5 teslim/demoda kişi bazlı kapsam ve kanıtlar
-[Sprint 5 final delivery](docs/sprint-5/README.md), Admin sözleşmesi
-[Admin API contract](docs/api/admin-contract.md), rapor uyumu
-[Final report comparison](docs/final/report-comparison.md) ve kalan maddeler
-[Known medium items](docs/final/known-medium.md) dosyalarındadır.
-
-API testleri `gaming_marketplace_test` adlı ayrı PostgreSQL schema'sında migration
-ve seed çalıştırır. Gerçek kullanıcıların bakiyelerine ve bildirimlerine dokunmaz.
-Redis worker testi benzersiz test kuyruğu kullanır ve sadece fixture order'larını tarar.
-
-## Valorant Inventory Video Analyzer
-
-- A new optional post-publish page is shown for `Accounts + Valorant` listings.
-- Sellers upload MP4/WebM directly to a private Cloudflare R2 bucket using a
-  short-lived signed URL. The separate analyzer limit is 150 MB.
-- BullMQ starts and polls the external inference job outside the browser request. There is no
-  overall analysis timeout; polling continues until the provider returns a terminal status.
-- The external API `result` stays stored unchanged for diagnostics. The Seller UI
-  reads `title` detections from every frame, removes duplicates, corrects small OCR
-  errors in known weapon names, and groups the remaining skin names by weapon.
-- Temporary videos are deleted after two hours. Results remain attached to the
-  Seller's listing analysis record.
-- Admin `/admin/integrations` manages the Valorant API base URL, optional encrypted API key,
-  and enabled state. R2 credentials stay only in `.env`.
-
-Environment values and endpoint details are documented in
-[Valorant Inventory Analysis Contract](docs/api/inventory-analysis-contract.md).
-
-## Veritabanı Komutları
-
-```powershell
-npm run db:up        # PostgreSQL ve Redis'i başlatır
-npm run db:deploy    # Repository'deki migration'ları uygular
-npm run db:seed      # Demo kullanıcılarını oluşturur/günceller
-npm run db:migrate   # Şema geliştirirken yeni migration üretir
-npm run db:generate  # Prisma Client'ı yeniden üretir
-npm run db:down      # Docker servislerini durdurur
-npm run db:reset     # DESTRUCTIVE: yapılandırılmış DB şemasını siler, migrate + seed yapar
-```
-
-## Kalite Kontrolleri
-
-```powershell
-npm run lint
-npm run test
-npm run build
-npm run verify       # lint + tüm testler + tüm build'ler
-```
-
-Postman collection ve local environment dosyaları `docs/postman` altındadır.
-Postman, Login response'undaki cookie'yi kendi cookie jar'ında saklar; Bearer token
-girmek gerekmez. Seller işlemleri için önce `Login Demo Seller`, sonra Categories
-ve Games isteklerini çalıştırıp Create Listing içindeki Cover dosyasını seçin.
-
-## MVP Kapsamı
-
-- Authentication ve Buyer/Seller/Admin rolleri
-- Categories, Games ve Listings
-- Cover image, galeri ve opsiyonel video
-- Wallet, Coin, Available Balance ve Held Balance
-- Order yaşam döngüsü ve 24 saatlik otomatik onay
-- Basit mesajlaşma, Support Ticket, Rating ve Notifications
-- Admin yönetimi
-
-`1 Coin = 1 TRY` kabul edilir. Deposit ve Withdrawal Sprint 1 kapsamında değildir
-ve MVP'de yalnızca simülasyon olarak uygulanacaktır. Mesajlaşma Polling ile
-başlayacak, Socket.IO ise opsiyonel kalacaktır.
+The linked engineering documents include the project's original Turkish documentation.
