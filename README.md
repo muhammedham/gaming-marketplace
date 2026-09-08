@@ -145,7 +145,7 @@ These are sample credentials for local development. Configure your own credentia
 
 - Optional analysis for `Accounts + Valorant` listings, with MP4/WebM uploads up to the configured 150 MB limit.
 - Videos upload directly to private Cloudflare R2 storage using signed URLs.
-- Background jobs poll the external inference API until a terminal status is returned, without a five-minute overall cutoff.
+- Background jobs poll the external inference API until a terminal status is returned.
 - The UI collects detections across frames, removes duplicates, and groups skin names by weapon for copying.
 - Temporary video cleanup is scheduled after two hours and requires the backend workers to be running.
 - Admin manages the API URL and optional encrypted API key under Integrations. R2 credentials and the encryption key stay in `.env`.
